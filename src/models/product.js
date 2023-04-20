@@ -1,0 +1,56 @@
+// Import des modules nécessaires
+const { DataTypes } = require('sequelize');
+
+// Définition du modèle
+module.exports = sequelize => {
+	const Product = sequelize.define(
+		'Product',
+		{
+			id: {
+				type: DataTypes.INTEGER(10),
+				primaryKey: true,
+				autoIncrement: true,
+			},
+			product_id: {
+				type: DataTypes.STRING(50),
+				defaultValue: '',
+				allowNull: false,
+			},
+			name: {
+				type: DataTypes.STRING(100),
+				defaultValue: '',
+				allowNull: false,
+			},
+			freezer_id: {
+				type: DataTypes.INTEGER(10),
+				allowNull: false,
+			},
+			user_id: {
+				type: DataTypes.INTEGER(10),
+				allowNull: false,
+			},
+			product_typer_id: {
+				type: DataTypes.INTEGER(10),
+				allowNull: false,
+			},
+			quantity: {
+				type: DataTypes.INTEGER(10),
+				allowNull: false,
+				defaultValue: 0,
+			},
+			addind_date: {
+				type: DataTypes.DATE,
+				allowNull: false,
+			},
+			removing_date: {
+				type: DataTypes.DATE,
+				allowNull: false,
+			},
+		},
+		{
+			paranoid: true,
+		}
+	);
+
+	return Product;
+};
