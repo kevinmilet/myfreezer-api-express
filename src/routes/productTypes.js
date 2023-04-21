@@ -7,7 +7,7 @@ const ProductType = DB.ProductType;
 // Récupération du router d'express
 let router = express.Router();
 
-// Routage de la ressource FreezerType
+// Routage de la ressource ProductType
 router.get('', (req, res) => {
 	ProductType.findAll()
 		.then(productType => res.json({ data: productType }))

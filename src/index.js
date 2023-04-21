@@ -14,6 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 // Import de modules de routage
 const user_router = require('./routes/users');
 const freezerType_router = require('./routes/freezerTypes');
+const freezer_router = require('./routes/freezers');
 const productType_router = require('./routes/productTypes');
 
 // Mise en place du routage
@@ -21,6 +22,7 @@ app.get('/', (req, res) => res.send(`I'm online. Welldone !!`));
 
 app.use('/users', user_router);
 app.use('/freezertypes', freezerType_router);
+app.use('/freezers', freezer_router);
 app.use('/productypes', productType_router);
 
 app.get('*', (req, res) =>

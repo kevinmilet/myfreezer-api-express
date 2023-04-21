@@ -101,9 +101,7 @@ router.patch('/:id', (req, res) => {
 				lastname: '',
 				email: '',
 			};
-			console.log(req.body.firstname);
-			console.log(req.body.lastname);
-			console.log(req.body.email);
+
 			data.firstname =
 				req.body.firstname != undefined
 					? req.body.firstname.trim()
@@ -114,7 +112,7 @@ router.patch('/:id', (req, res) => {
 					: user.lastname;
 			data.email =
 				req.body.email != undefined ? req.body.email.trim() : user.email;
-			console.log(data);
+
 			User.update(data, { where: { id: userId } })
 				.then(user => res.json({ message: 'User updated', data: user }))
 				.catch(err =>
