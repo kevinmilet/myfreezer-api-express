@@ -3,6 +3,8 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const DB = require('../config/db.config');
 const Freezer = DB.Freezer;
+const User = DB.User;
+const FreezerType = DB.FreezerType;
 
 // Récupération du router d'express
 let router = express.Router();
@@ -23,7 +25,19 @@ router.get('/:id', (req, res) => {
 		return res.status(400).json({ message: 'Missing parameters' });
 	}
 
-	Freezer.findOne({ where: { id: freezerId }, raw: true })
+	Freezer.findOne({
+		where: { id: freezerId },
+		include: [
+			{
+				model: User,
+				attributes: ['id', 'firstname', 'lastname', 'email', 'account_id'],
+			},
+			{
+				model: FreezerType,
+				attributes: ['id', 'name'],
+			},
+		],
+	})
 		.then(freezer => {
 			if (freezer === null) {
 				return res.status(404).json({ message: 'Freezer not found' });

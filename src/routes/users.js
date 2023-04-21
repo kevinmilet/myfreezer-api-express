@@ -8,7 +8,47 @@ const User = DB.User;
 // Récupération du router d'express
 let router = express.Router();
 
-// Routage de la ressource User
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     NewUser:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: The user's name.
+ *           example: Leanne Graham
+ *     User:
+ *       allOf:
+ *         - type: object
+ *           properties:
+ *             id:
+ *               type: integer
+ *               description: The user ID.
+ *               example: 0
+ *         - $ref: '#/components/schemas/NewUser'
+ */
+
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Récupère la liste de utilisateurs
+ *     description: Récupère la liste de utilisateurs.
+ *     responses:
+ *       200:
+ *         description: A list of users.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ */
 router.get('', (req, res) => {
 	User.findAll()
 		.then(users => res.json({ data: users }))
