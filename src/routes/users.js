@@ -1,10 +1,13 @@
 // Import des modules nécessaires
 const express = require('express');
-const userController = require('../controllers/user');
+const userController = require('../controllers/userCtrl');
 const checkjwtTokenMiddleware = require('../middlewares/checktoken');
 
 let router = express.Router();
 
+/**
+ * Routes pour les users
+ */
 router.get('/', checkjwtTokenMiddleware, userController.getAllUsers);
 
 router.get('/:id', checkjwtTokenMiddleware, userController.getUserById);
