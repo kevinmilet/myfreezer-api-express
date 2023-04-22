@@ -9,6 +9,13 @@ const FreezerType = DB.FreezerType;
 // Récupération du router d'express
 let router = express.Router();
 
+// Middleware pour logger les dates
+router.use((req, res, next) => {
+	const event = new Date();
+	console.log('FREEZER Time: ', event.toString());
+	next();
+});
+
 // Routage de la ressource Freezer
 router.get('', (req, res) => {
 	Freezer.findAll()

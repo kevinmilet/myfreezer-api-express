@@ -5,8 +5,17 @@ const bcrypt = require('bcrypt');
 const DB = require('../config/db.config');
 const User = DB.User;
 
+const checkjwtTokenMiddleware = require('../middlewares/checktoken');
+
 // Récupération du router d'express
 let router = express.Router();
+
+// Middleware pour logger les dates
+router.use((req, res, next) => {
+	const event = new Date();
+	console.log('USER Time: ', event.toString());
+	next();
+});
 
 /**
  * @swagger
@@ -49,7 +58,7 @@ let router = express.Router();
  *                   items:
  *                     $ref: '#/components/schemas/User'
  */
-router.get('', (req, res) => {
+router.get('', checkjwtTokenMiddleware, (req, res) => {
 	User.findAll()
 		.then(users => res.json({ data: users }))
 		.catch(err =>
