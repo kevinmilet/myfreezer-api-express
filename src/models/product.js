@@ -29,7 +29,7 @@ module.exports = sequelize => {
 				type: DataTypes.INTEGER(10),
 				allowNull: false,
 			},
-			product_typer_id: {
+			product_type_id: {
 				type: DataTypes.INTEGER(10),
 				allowNull: false,
 			},
@@ -38,11 +38,7 @@ module.exports = sequelize => {
 				allowNull: false,
 				defaultValue: 0,
 			},
-			addind_date: {
-				type: DataTypes.DATE,
-				allowNull: false,
-			},
-			removing_date: {
+			adding_date: {
 				type: DataTypes.DATE,
 				allowNull: false,
 			},
