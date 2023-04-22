@@ -48,6 +48,7 @@ const freezerType_router = require('./routes/freezerTypes');
 const freezer_router = require('./routes/freezers');
 const productType_router = require('./routes/productTypes');
 const product_router = require('./routes/products');
+const auth_router = require('./routes/auth');
 
 // Mise en place du routage
 app.get('/', (req, res) => res.send(`I'm online. Welldone !!`));
@@ -57,6 +58,8 @@ app.use('/freezertypes', freezerType_router);
 app.use('/freezers', freezer_router);
 app.use('/producttypes', productType_router);
 app.use('/products', product_router);
+
+app.use('/auth', auth_router);
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

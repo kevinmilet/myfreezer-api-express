@@ -40,9 +40,9 @@ db.Freezer.hasMany(db.Product, { foreignKey: 'freezer_id' });
 db.Product.belongsTo(db.Freezer, { foreignKey: 'freezer_id' });
 
 // Synchro des modèles
-// db.sequelize.sync(err => {
-// 	console.log('Database Sync Error', err);
-// });
-db.sequelize.sync({ alter: true });
+db.sequelize.sync(err => {
+	console.log('Database Sync Error', err);
+});
+//db.sequelize.sync({ alter: true });
 
 module.exports = db;
