@@ -6,6 +6,8 @@ const swaggerUi = require('swagger-ui-express');
 
 let DB = require('./config/db.config');
 
+const checkjwtTokenMiddleware = require('./middlewares/checktoken');
+
 // Config Swagger pour la documentation
 const swaggerDefinition = {
 	openapi: '3.0.0',
@@ -54,10 +56,10 @@ const auth_router = require('./routes/auth');
 app.get('/', (req, res) => res.send(`I'm online. Welldone !!`));
 
 app.use('/users', user_router);
-app.use('/freezertypes', freezerType_router);
-app.use('/freezers', freezer_router);
-app.use('/producttypes', productType_router);
-app.use('/products', product_router);
+app.use('/freezertypes', checkjwtTokenMiddleware, freezerType_router);
+app.use('/freezers', checkjwtTokenMiddleware, freezer_router);
+app.use('/producttypes', checkjwtTokenMiddleware, productType_router);
+app.use('/products', checkjwtTokenMiddleware, product_router);
 
 app.use('/auth', auth_router);
 
