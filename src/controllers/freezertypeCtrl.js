@@ -37,13 +37,27 @@ exports.createFreezerType = async (req, res) => {
 	}
 
 	try {
+		let freezerType = await FreezerType.findOne({
+			where: { name: req.body.name },
+			raw: true,
+		});
+
+		if (
+			freezerType !== null &&
+			freezerType.name.toLowerCase() == req.body.name.toLowerCase()
+		) {
+			return res.status(409).json({
+				message: `The freezer type '${req.body.name}' already exists`,
+			});
+		}
+
 		// On nettoie et on formate le nom
 		let str = req.body.name.toString().trim();
 		req.body.name = str[0].toUpperCase() + str.slice(1).toLowerCase();
 
-		let freezerType = await FreezerType.create(req.body);
+		let newFreezerType = await FreezerType.create(req.body);
 
-		return res.json({ message: 'Freezer Type created', data: freezerType });
+		return res.json({ message: 'Freezer Type created', data: newFreezerType });
 	} catch (error) {
 		return res.status(500).json({ message: 'Database error', error: error });
 	}
@@ -64,6 +78,10 @@ exports.updateFreezerType = async (req, res) => {
 
 		if (freezerType === null) {
 			return res.status(404).json({ message: 'Freezer Type not found' });
+		} else if (freezerType.name.toLowerCase() == req.body.name.toLowerCase()) {
+			return res.status(409).json({
+				message: `The freezer type '${req.body.name}' already exists`,
+			});
 		}
 
 		// On nettoie et on formate le nom
