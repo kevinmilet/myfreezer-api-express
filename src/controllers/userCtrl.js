@@ -1,5 +1,4 @@
 // import des modules nécessaires
-const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const DB = require('../config/db.config');
 const User = DB.User;
@@ -50,7 +49,6 @@ exports.createUser = async (req, res) => {
 		lastname: '',
 		email: '',
 		password: '',
-		account_id: '',
 	};
 
 	if (!lastname || !firstname || !email || !password) {
@@ -78,7 +76,6 @@ exports.createUser = async (req, res) => {
 		data.firstname = firstname.trim();
 		data.lastname = lastname.trim();
 		data.email = email.trim();
-		data.account_id = uuidv4().toString().replace('-', '');
 
 		// Création du user
 		let newUser = await User.create(data);

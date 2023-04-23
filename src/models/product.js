@@ -12,8 +12,8 @@ module.exports = sequelize => {
 				autoIncrement: true,
 			},
 			product_id: {
-				type: DataTypes.STRING(50),
-				defaultValue: '',
+				type: DataTypes.UUID,
+				defaultValue: DataTypes.UUIDV4,
 				allowNull: false,
 			},
 			name: {

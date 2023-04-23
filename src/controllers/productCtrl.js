@@ -1,5 +1,4 @@
 // Import des modules nécessaires
-const { v4: uuidv4 } = require('uuid');
 const DB = require('../config/db.config');
 const Product = DB.Product;
 const User = DB.User;
@@ -66,7 +65,6 @@ exports.createProduct = async (req, res) => {
 	try {
 		const data = {
 			name: '',
-			product_id: '',
 			freezer_id: null,
 			user_id: null,
 			product_type_id: '',
@@ -82,7 +80,6 @@ exports.createProduct = async (req, res) => {
 		data.freezer_id = freezer_id;
 		data.quantity = quantity;
 		data.adding_date = adding_date;
-		data.product_id = uuidv4().toString().replace('-', '');
 
 		let newProduct = await Product.create(data);
 		return res.json({ message: 'Product created', data: newProduct });

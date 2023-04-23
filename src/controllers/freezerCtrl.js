@@ -1,5 +1,4 @@
 // Import des modules nécessaires
-const { v4: uuidv4 } = require('uuid');
 const DB = require('../config/db.config');
 const Freezer = DB.Freezer;
 const User = DB.User;
@@ -58,7 +57,6 @@ exports.createFreezer = async (req, res) => {
 			name: '',
 			freezer_type_id: null,
 			user_id: null,
-			freezer_id: '',
 		};
 
 		let str = name.toString().trim();
@@ -66,7 +64,6 @@ exports.createFreezer = async (req, res) => {
 		data.name = str[0].toUpperCase() + str.slice(1).toLowerCase();
 		data.freezer_type_id = freezer_type_id;
 		data.user_id = user_id;
-		data.freezer_id = uuidv4().toString().replace('-', '');
 
 		let newFreezer = await Freezer.create(data);
 
