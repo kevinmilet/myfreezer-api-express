@@ -14,7 +14,6 @@ exports.login = async (req, res) => {
 
 	try {
 		let user = await User.findOne({ where: { email: email }, raw: true });
-
 		if (user === null) {
 			return res.status(401).json({ message: "This account does'nt exist" });
 		}
@@ -39,7 +38,7 @@ exports.login = async (req, res) => {
 			{ expiresIn: process.env.JWT_TTL }
 		);
 
-		return res.json({ jwt_toekn: jwt_token });
+		return res.json({ jwt_token: jwt_token });
 	} catch (error) {
 		if (error.name == 'SequelizeDatabaseError') {
 			res.status(500).json({ message: 'Database Error', error: error });
