@@ -20,4 +20,8 @@ router.delete('/trash/:id', productController.trashProduct);
 
 router.post('/untrash/:id', productController.restoreProduct);
 
+router.get('/user/:id', productController.getProductsByUserId);
+
+router.get('/freezer/:id', productController.getProductsByFreezerId);
+
 module.exports = router;

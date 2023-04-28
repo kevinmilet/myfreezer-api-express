@@ -3,6 +3,7 @@ const DB = require('../config/db.config');
 const Freezer = DB.Freezer;
 const User = DB.User;
 const FreezerType = DB.FreezerType;
+const { QueryTypes } = require('sequelize');
 
 exports.getAllFreezers = async (req, res) => {
 	try {
@@ -156,6 +157,27 @@ exports.deleteFreezer = async (req, res) => {
 		// Supression du Freezer
 		await Freezer.destroy({ where: { id: freezerId }, force: true });
 		return res.status(204).json({ message: 'Freezer deleted' });
+	} catch (error) {
+		return res.status(500).json({ message: 'Database error', error: error });
+	}
+};
+
+exports.getFreezersByUserId = async (req, res) => {
+	let userId = parseInt(req.params.id);
+
+	if (!userId) {
+		return res.status(400).json({ message: 'Missing parameters' });
+	}
+
+	try {
+		const freezers = await DB.sequelize.query(
+			'SELECT * FROM `Freezers` WHERE user_id = $1',
+			{
+				bind: [userId],
+				type: QueryTypes.SELECT,
+			}
+		);
+		return res.json({ data: freezers });
 	} catch (error) {
 		return res.status(500).json({ message: 'Database error', error: error });
 	}

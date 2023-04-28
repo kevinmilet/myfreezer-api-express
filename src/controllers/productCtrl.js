@@ -1,4 +1,5 @@
 // Import des modules nécessaires
+const { QueryTypes } = require('sequelize');
 const DB = require('../config/db.config');
 const Product = DB.Product;
 const User = DB.User;
@@ -182,6 +183,48 @@ exports.restoreProduct = async (req, res) => {
 	try {
 		await Product.restore({ where: { id: productId } });
 		return res.status(204).json({ message: 'Product restored' });
+	} catch (error) {
+		return res.status(500).json({ message: 'Database error', error: error });
+	}
+};
+
+exports.getProductsByFreezerId = async (req, res) => {
+	let freezerId = parseInt(req.params.id);
+
+	if (!freezerId) {
+		return res.status(400).json({ message: 'Missing parameters' });
+	}
+
+	try {
+		const products = await DB.sequelize.query(
+			'SELECT * FROM `Products` WHERE freezer_id = $1',
+			{
+				bind: [freezerId],
+				type: QueryTypes.SELECT,
+			}
+		);
+		return res.json({ data: products });
+	} catch (error) {
+		return res.status(500).json({ message: 'Database error', error: error });
+	}
+};
+
+exports.getProductsByUserId = async (req, res) => {
+	let userId = parseInt(req.params.id);
+
+	if (!userId) {
+		return res.status(400).json({ message: 'Missing parameters' });
+	}
+
+	try {
+		const products = await DB.sequelize.query(
+			'SELECT * FROM `Products` WHERE user_id = $1',
+			{
+				bind: [userId],
+				type: QueryTypes.SELECT,
+			}
+		);
+		return res.json({ data: products });
 	} catch (error) {
 		return res.status(500).json({ message: 'Database error', error: error });
 	}

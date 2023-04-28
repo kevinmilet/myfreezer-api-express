@@ -4,9 +4,9 @@ const cors = require('cors');
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
-let DB = require('./config/db.config');
+let DB = require('./src/config/db.config');
 
-const checkjwtTokenMiddleware = require('./middlewares/checktoken');
+const checkjwtTokenMiddleware = require('./src/middlewares/checktoken');
 
 // Config Swagger pour la documentation
 const swaggerDefinition = {
@@ -45,12 +45,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Import de modules de routage
-const user_router = require('./routes/users');
-const freezerType_router = require('./routes/freezerTypes');
-const freezer_router = require('./routes/freezers');
-const productType_router = require('./routes/productTypes');
-const product_router = require('./routes/products');
-const auth_router = require('./routes/auth');
+const user_router = require('./src/routes/users');
+const freezerType_router = require('./src/routes/freezerTypes');
+const freezer_router = require('./src/routes/freezers');
+const productType_router = require('./src/routes/productTypes');
+const product_router = require('./src/routes/products');
+const auth_router = require('./src/routes/auth');
 
 // Mise en place du routage
 app.get('/', (req, res) => res.send(`I'm online. Welldone !!`));

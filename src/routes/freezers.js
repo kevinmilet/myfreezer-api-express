@@ -20,4 +20,6 @@ router.delete('/trash/:id', freezerController.trashFreezer);
 
 router.post('/untrash/:id', freezerController.restoreFreezer);
 
+router.get('/user/:id', freezerController.getFreezersByUserId);
+
 module.exports = router;
