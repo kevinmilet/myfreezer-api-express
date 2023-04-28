@@ -1,7 +1,8 @@
-// Import des modules nécessaires
 const { Sequelize } = require('sequelize');
 
-// Connexion à la BDD
+/**
+ * Connexion à la BDD
+ */
 let sequelize = new Sequelize(
 	process.env.DB_NAME,
 	process.env.DB_USER,
@@ -14,7 +15,9 @@ let sequelize = new Sequelize(
 	}
 );
 
-// Mise en place des relations
+/**
+ * Mise en place des relations
+ */
 const db = {};
 
 db.sequelize = sequelize;
@@ -39,7 +42,9 @@ db.Product.belongsTo(db.User, { foreignKey: 'user_id' });
 db.Freezer.hasMany(db.Product, { foreignKey: 'freezer_id' });
 db.Product.belongsTo(db.Freezer, { foreignKey: 'freezer_id' });
 
-// Synchro des modèles
+/**
+ * Synchro des modèles
+ */
 db.sequelize.sync(err => {
 	console.log('Database Sync Error', err);
 });

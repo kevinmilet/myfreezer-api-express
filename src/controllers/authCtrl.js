@@ -1,9 +1,15 @@
-// Import des modules nécessaires
 const bcrypt = require('bcrypt');
 const DB = require('../config/db.config');
 const User = DB.User;
 const jwt = require('jsonwebtoken');
 
+/**
+ * Méthode de connexion
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns
+ */
 exports.login = async (req, res) => {
 	const { email, password } = req.body;
 

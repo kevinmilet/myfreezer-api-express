@@ -1,7 +1,12 @@
-// Import des modules nécessaires
 const DB = require('../config/db.config');
 const ProductType = DB.ProductType;
 
+/**
+ * Récupère tous les produits
+ *
+ * @param {*} req
+ * @param {*} res
+ */
 exports.getAllProductTypes = (req, res) => {
 	ProductType.findAll()
 		.then(productType => res.json({ data: productType }))
@@ -10,6 +15,13 @@ exports.getAllProductTypes = (req, res) => {
 		});
 };
 
+/**
+ * Récupére un produit par son ID
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns
+ */
 exports.getProductTypeById = async (req, res) => {
 	let id = parseInt(req.params.id);
 
@@ -33,6 +45,13 @@ exports.getProductTypeById = async (req, res) => {
 	}
 };
 
+/**
+ * Crée un produit
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns
+ */
 exports.createProductType = async (req, res) => {
 	if (!req.body.name) {
 		return res.status(400).json({ message: 'Missing data' });
@@ -65,6 +84,13 @@ exports.createProductType = async (req, res) => {
 	}
 };
 
+/**
+ * Met à jour un produit
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns
+ */
 exports.updateProductType = async (req, res) => {
 	let id = parseInt(req.params.id);
 
@@ -98,6 +124,13 @@ exports.updateProductType = async (req, res) => {
 	}
 };
 
+/**
+ * Supprime un produit
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns
+ */
 exports.deleteProductType = async (req, res) => {
 	let id = parseInt(req.params.id);
 
