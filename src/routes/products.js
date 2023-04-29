@@ -8,6 +8,8 @@ let router = express.Router();
 // Routage de la ressource Product
 router.get('', productController.getAllProducts);
 
+router.get('/search', productController.searchProduct);
+
 router.get('/:id', productController.getProductById);
 
 router.put('', productController.createProduct);

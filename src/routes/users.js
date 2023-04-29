@@ -10,6 +10,8 @@ let router = express.Router();
  */
 router.get('/', checkjwtTokenMiddleware, userController.getAllUsers);
 
+router.get('/search', checkjwtTokenMiddleware, userController.searchUser);
+
 router.get('/:id', checkjwtTokenMiddleware, userController.getUserById);
 
 router.put('', userController.createUser);

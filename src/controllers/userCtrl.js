@@ -1,3 +1,4 @@
+const { QueryTypes, Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 const DB = require('../config/db.config');
 const User = DB.User;
@@ -181,6 +182,47 @@ exports.untrashUser = async (req, res) => {
 		await User.restore({ where: { id: userId } });
 
 		return res.status(204).json({ message: 'User restored' });
+	} catch (error) {
+		return res.status(500).json({ message: 'Database error', error: error });
+	}
+};
+
+exports.searchUser = async (req, res) => {
+	let search = req.body.search;
+
+	if (!search) {
+		return res.status(204);
+	}
+
+	try {
+		const users = await User.findAll({
+			where: {
+				[Op.or]: [
+					{
+						firstname: {
+							[Op.like]: `%${search}%`,
+						},
+					},
+					{
+						lastname: {
+							[Op.like]: `%${search}%`,
+						},
+					},
+					{
+						email: {
+							[Op.like]: `%${search}%`,
+						},
+					},
+				],
+			},
+			raw: true,
+		});
+
+		if (users === null) {
+			return res.status(404).json({ message: 'User not found' });
+		}
+
+		return res.json({ data: users });
 	} catch (error) {
 		return res.status(500).json({ message: 'Database error', error: error });
 	}

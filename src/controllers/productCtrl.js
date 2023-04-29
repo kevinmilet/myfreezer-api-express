@@ -1,5 +1,5 @@
 // Import des modules nécessaires
-const { QueryTypes } = require('sequelize');
+const { QueryTypes, Op } = require('sequelize');
 const DB = require('../config/db.config');
 const Product = DB.Product;
 const User = DB.User;
@@ -224,6 +224,34 @@ exports.getProductsByUserId = async (req, res) => {
 				type: QueryTypes.SELECT,
 			}
 		);
+		return res.json({ data: products });
+	} catch (error) {
+		return res.status(500).json({ message: 'Database error', error: error });
+	}
+};
+
+exports.searchProduct = async (req, res) => {
+	console.log(req.body);
+	let search = req.body.search;
+
+	if (!search) {
+		return res.status(204);
+	}
+
+	try {
+		const products = await Product.findAll({
+			where: {
+				name: {
+					[Op.like]: `%${search}%`,
+				},
+			},
+			raw: true,
+		});
+
+		if (products === null) {
+			return res.status(404).json({ message: 'Products not found' });
+		}
+
 		return res.json({ data: products });
 	} catch (error) {
 		return res.status(500).json({ message: 'Database error', error: error });
