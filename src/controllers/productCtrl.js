@@ -73,9 +73,7 @@ exports.createProduct = async (req, res) => {
 			adding_date: '',
 		};
 
-		let str = name.toString().trim();
-
-		data.name = str[0].toUpperCase() + str.slice(1).toLowerCase();
+		data.name = name.trim().toLowerCase();
 		data.product_type_id = product_type_id;
 		data.user_id = user_id;
 		data.freezer_id = freezer_id;
@@ -115,7 +113,9 @@ exports.updateProduct = async (req, res) => {
 		};
 
 		data.name =
-			req.body.name != undefined ? req.body.name.trim() : product.name;
+			req.body.name != undefined
+				? req.body.name.trim().toLowerCase()
+				: product.name;
 		data.product_type_id =
 			req.body.freezer_type_id != undefined
 				? req.body.product_type_id
@@ -231,8 +231,7 @@ exports.getProductsByUserId = async (req, res) => {
 };
 
 exports.searchProduct = async (req, res) => {
-	console.log(req.body);
-	let search = req.body.search;
+	let search = req.body.search.trim().toLowerCase();
 
 	if (!search) {
 		return res.status(204);

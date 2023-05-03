@@ -73,9 +73,9 @@ exports.createUser = async (req, res) => {
 
 		// Remaping des datas
 		data.password = hash;
-		data.firstname = firstname.trim();
-		data.lastname = lastname.trim();
-		data.email = email.trim();
+		data.firstname = firstname.trim().toLowerCase();
+		data.lastname = lastname.trim().toLowerCase();
+		data.email = email.trim().toLowerCase();
 
 		// Création du user
 		let newUser = await User.create(data);
@@ -115,12 +115,16 @@ exports.updateUser = async (req, res) => {
 
 		data.firstname =
 			req.body.firstname != undefined
-				? req.body.firstname.trim()
+				? req.body.firstname.trim().toLowerCase()
 				: user.firstname;
 		data.lastname =
-			req.body.lastname != undefined ? req.body.lastname.trim() : user.lastname;
+			req.body.lastname != undefined
+				? req.body.lastname.trim().toLowerCase()
+				: user.lastname;
 		data.email =
-			req.body.email != undefined ? req.body.email.trim() : user.email;
+			req.body.email != undefined
+				? req.body.email.trim().toLowerCase()
+				: user.email;
 
 		await User.update(data, { where: { id: userId } });
 
@@ -188,7 +192,7 @@ exports.untrashUser = async (req, res) => {
 };
 
 exports.searchUser = async (req, res) => {
-	let search = req.body.search;
+	let search = req.body.search.trim().toLowerCase();
 
 	if (!search) {
 		return res.status(204);

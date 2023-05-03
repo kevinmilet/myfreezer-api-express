@@ -59,13 +59,13 @@ exports.createProductType = async (req, res) => {
 
 	try {
 		let productType = await ProductType.findOne({
-			where: { name: req.body.name },
+			where: { name: req.body.name.trim().toLowerCase() },
 			raw: true,
 		});
 
 		if (
 			productType !== null &&
-			productType.name.toLowerCase() == req.body.name.toLowerCase()
+			productType.name.toLowerCase() == req.body.name.trim().toLowerCase()
 		) {
 			return res.status(409).json({
 				message: `The product type '${req.body.name}' already exists`,
@@ -73,8 +73,7 @@ exports.createProductType = async (req, res) => {
 		}
 
 		// On nettoie et on formate le nom
-		let str = req.body.name.toString().trim();
-		req.body.name = str[0].toUpperCase() + str.slice(1).toLowerCase();
+		req.body.name = req.body.name.trim().toLowerCase();
 
 		let newPT = await ProductType.create(req.body);
 
@@ -106,15 +105,16 @@ exports.updateProductType = async (req, res) => {
 
 		if (productType === null) {
 			return res.status(404).json({ message: 'Product Type not found' });
-		} else if (productType.name.toLowerCase() == req.body.name.toLowerCase()) {
+		} else if (
+			productType.name.toLowerCase() == req.body.name.trim().toLowerCase()
+		) {
 			return res.status(409).json({
 				message: `The product type '${req.body.name}' already exists`,
 			});
 		}
 
 		// On nettoie et on formate le nom
-		let str = req.body.name.toString().trim();
-		req.body.name = str[0].toUpperCase() + str.slice(1).toLowerCase();
+		req.body.name = req.body.name.trim().toLowerCase();
 
 		let updatedPT = await ProductType.update(req.body, { where: { id: id } });
 

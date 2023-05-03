@@ -60,9 +60,7 @@ exports.createFreezer = async (req, res) => {
 			user_id: null,
 		};
 
-		let str = name.toString().trim();
-
-		data.name = str[0].toUpperCase() + str.slice(1).toLowerCase();
+		data.name = name.trim().toLowerCase();
 		data.freezer_type_id = freezer_type_id;
 		data.user_id = user_id;
 
@@ -97,7 +95,9 @@ exports.updateFreezer = async (req, res) => {
 		};
 
 		data.name =
-			req.body.name != undefined ? req.body.name.trim() : freezer.name;
+			req.body.name != undefined
+				? req.body.name.trim().toLowerCase()
+				: freezer.name;
 		data.freezer_type_id =
 			req.body.freezer_type_id != undefined
 				? req.body.freezer_type_id
