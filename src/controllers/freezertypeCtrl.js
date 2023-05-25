@@ -19,7 +19,10 @@ exports.getFreezerTypeById = async (req, res) => {
 	}
 
 	try {
-		let freezerType = FreezerType.findOne({ where: { id: id }, raw: true });
+		let freezerType = await FreezerType.findOne({
+			where: { id: id },
+			raw: true,
+		});
 
 		if (freezerType === null) {
 			return res.status(404).json({ message: 'Freezer Type not found' });

@@ -1,8 +1,5 @@
 // Import des modules nécessaires
 const express = require('express');
-const DB = require('../config/db.config');
-const freezerType = require('../models/freezer-type');
-const FreezerType = DB.FreezerType;
 const freezerTypeController = require('../controllers/freezertypeCtrl');
 
 // Récupération du router d'express
