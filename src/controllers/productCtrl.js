@@ -224,6 +224,10 @@ exports.getProductsByUserId = async (req, res) => {
 					model: ProductType,
 					attributes: ['id', 'name'],
 				},
+				{
+					model: Freezer,
+					attributes: ['id', 'name'],
+				},
 			],
 		});
 		return res.json({ data: products });
