@@ -42,6 +42,8 @@ exports.login = async (req, res) => {
 				lastname: user.lastname,
 				email: user.email,
 				account_id: user.account_id,
+				is_admin: user.is_admin,
+				is_active: user.is_active,
 			},
 			process.env.JWT_SECRET,
 			{ expiresIn: process.env.JWT_TTL }
@@ -49,15 +51,6 @@ exports.login = async (req, res) => {
 
 		return res.json({
 			jwt_token: jwt_token,
-			user: {
-				id: user.id,
-				account_id: user.account_id,
-				lastname: user.lastname,
-				firstname: user.firstname,
-				email: user.email,
-				is_admin: user.is_admin,
-				is_active: user.is_active,
-			},
 		});
 	} catch (error) {
 		if (error.name == 'SequelizeDatabaseError') {
