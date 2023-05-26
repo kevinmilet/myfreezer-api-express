@@ -170,13 +170,16 @@ exports.getFreezersByUserId = async (req, res) => {
 	}
 
 	try {
-		const freezers = await DB.sequelize.query(
-			'SELECT * FROM `Freezers` WHERE user_id = $1',
-			{
-				bind: [userId],
-				type: QueryTypes.SELECT,
-			}
-		);
+		const freezers = await Freezer.findAll({
+			where: { user_id: userId },
+			include: [
+				{
+					model: FreezerType,
+					attributes: ['id', 'name'],
+				},
+			],
+		});
+
 		return res.json({ data: freezers });
 	} catch (error) {
 		return res.status(500).json({ message: 'Database error', error: error });

@@ -217,13 +217,15 @@ exports.getProductsByUserId = async (req, res) => {
 	}
 
 	try {
-		const products = await DB.sequelize.query(
-			'SELECT * FROM `Products` WHERE user_id = $1',
-			{
-				bind: [userId],
-				type: QueryTypes.SELECT,
-			}
-		);
+		const products = await Product.findAll({
+			where: { user_id: userId },
+			include: [
+				{
+					model: ProductType,
+					attributes: ['id', 'name'],
+				},
+			],
+		});
 		return res.json({ data: products });
 	} catch (error) {
 		return res.status(500).json({ message: 'Database error', error: error });
