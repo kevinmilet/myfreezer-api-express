@@ -12,7 +12,7 @@ router.get('/:id', freezerController.getFreezerById);
 
 router.put('', freezerController.createFreezer);
 
-router.patch('/:id', freezerController.updateFreezer);
+router.put('/:id', freezerController.updateFreezer);
 
 router.delete('/:id', freezerController.deleteFreezer);
 

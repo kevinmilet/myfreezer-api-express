@@ -16,7 +16,7 @@ router.get('/:id', checkjwtTokenMiddleware, userController.getUserById);
 
 router.put('', userController.createUser);
 
-router.patch('/:id', checkjwtTokenMiddleware, userController.updateUser);
+router.put('/:id', checkjwtTokenMiddleware, userController.updateUser);
 
 router.delete('/:id', checkjwtTokenMiddleware, userController.deleteUser);
 

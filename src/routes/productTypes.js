@@ -12,7 +12,7 @@ router.get('/:id', productTypeController.getProductTypeById);
 
 router.put('', productTypeController.createProductType);
 
-router.patch('/:id', productTypeController.updateProductType);
+router.put('/:id', productTypeController.updateProductType);
 
 router.delete('/:id', productTypeController.deleteProductType);
 
