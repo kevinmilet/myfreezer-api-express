@@ -112,12 +112,14 @@ exports.updateProduct = async (req, res) => {
 			adding_date: '',
 		};
 
+		console.log(req.body);
+
 		data.name =
 			req.body.name != undefined
 				? req.body.name.trim().toLowerCase()
 				: product.name;
 		data.product_type_id =
-			req.body.freezer_type_id != undefined
+			req.body.product_type_id != undefined
 				? req.body.product_type_id
 				: product_type_id;
 		data.freezer_id =
@@ -130,6 +132,8 @@ exports.updateProduct = async (req, res) => {
 			req.body.adding_date != undefined
 				? req.body.adding_date
 				: product.adding_date;
+
+		console.log(data);
 
 		let updatedProduct = await Product.update(data, {
 			where: { id: productId },
