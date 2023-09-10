@@ -1,0 +1,14 @@
+/node_modules
+/dist
+/tmp
+/out-tsc
+/bazel-out
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+.idea/
+.env
+/src/.certs
