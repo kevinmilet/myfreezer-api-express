@@ -1,4 +1,5 @@
 const DB = require('../config/db.config');
+const productType = require('../models/product-type');
 const ProductType = DB.ProductType;
 
 /**
@@ -57,6 +58,10 @@ exports.createProductType = async (req, res) => {
 		return res.status(400).json({ message: 'Missing data' });
 	}
 
+	if (!req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
+	}
+
 	try {
 		let productType = await ProductType.findOne({
 			where: { name: req.body.name.trim().toLowerCase() },
@@ -95,6 +100,10 @@ exports.updateProductType = async (req, res) => {
 
 	if (!id) {
 		return res.status(400).json({ message: 'Missing parameters' });
+	}
+
+	if (!req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
 	}
 
 	try {
@@ -138,6 +147,10 @@ exports.deleteProductType = async (req, res) => {
 		return res.status(400).json({ message: 'Missing parameters' });
 	}
 
+	if (!req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
+	}
+
 	try {
 		// Supression du Product type
 		await ProductType.destroy({ where: { id: id }, force: true });
@@ -155,6 +168,10 @@ exports.trashProductType = async (req, res) => {
 		return res.status(400).json({ message: 'Missing parameters' });
 	}
 
+	if (!req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
+	}
+
 	try {
 		// Soft delete
 		await ProductType.destroy({ where: { id: id } });
@@ -169,6 +186,10 @@ exports.restoreProductType = async (req, res) => {
 
 	if (!id) {
 		return res.status(400).json({ message: 'Missing parameters' });
+	}
+
+	if (!req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
 	}
 
 	try {

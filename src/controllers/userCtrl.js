@@ -7,6 +7,10 @@ const User = DB.User;
  * Recupére tous les users
  */
 exports.getAllUsers = async (req, res) => {
+	if (!req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
+	}
+
 	try {
 		let users = await User.findAll();
 		return users;
@@ -23,6 +27,10 @@ exports.getUserById = async (req, res) => {
 
 	if (!userId) {
 		return res.status(400).json({ message: 'Missing parameters' });
+	}
+
+	if (!req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
 	}
 
 	try {
@@ -106,6 +114,10 @@ exports.updateUser = async (req, res) => {
 		return res.status(400).json({ message: 'Missing parameters' });
 	}
 
+	if (userId !== req.user_id && !req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
+	}
+
 	try {
 		let user = await User.findOne({ where: { id: userId }, raw: true });
 
@@ -144,6 +156,10 @@ exports.deleteUser = async (req, res) => {
 		return res.status(400).json({ message: 'Missing parameters' });
 	}
 
+	if (userId !== req.user_id && !req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
+	}
+
 	try {
 		await User.destroy({ where: { id: userId }, force: true });
 
@@ -161,6 +177,10 @@ exports.trashUser = async (req, res) => {
 
 	if (!userId) {
 		return res.status(400).json({ message: 'Missing parameters' });
+	}
+
+	if (userId !== req.user_id && !req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
 	}
 
 	try {
@@ -182,6 +202,10 @@ exports.untrashUser = async (req, res) => {
 		return res.status(400).json({ message: 'Missing parameters' });
 	}
 
+	if (userId !== req.user_id && !req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
+	}
+
 	try {
 		await User.restore({ where: { id: userId } });
 
@@ -196,6 +220,10 @@ exports.searchUser = async (req, res) => {
 
 	if (!search) {
 		return res.status(204);
+	}
+
+	if (!req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
 	}
 
 	try {

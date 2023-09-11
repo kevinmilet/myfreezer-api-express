@@ -7,6 +7,10 @@ const Freezer = DB.Freezer;
 const ProductType = DB.ProductType;
 
 exports.getAllProducts = (req, res) => {
+	if (!req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
+	}
+
 	Product.findAll()
 		.then(products => res.json({ data: products }))
 		.catch(err =>
@@ -42,6 +46,10 @@ exports.getProductById = async (req, res) => {
 
 		if (product === null) {
 			return res.status(404).json({ message: 'Product not found' });
+		}
+
+		if (product.user_id !== req.user_id && !req.isAdmin) {
+			return res.status(403).json({ message: 'Forbidden' });
 		}
 
 		return res.json({ data: product });
@@ -104,6 +112,10 @@ exports.updateProduct = async (req, res) => {
 			return res.status(404).json({ message: 'Product not found' });
 		}
 
+		if (req.user_id !== product.user_id) {
+			return res.status(403).json({ message: 'Forbidden' });
+		}
+
 		const data = {
 			name: '',
 			product_type_id: null,
@@ -149,6 +161,12 @@ exports.deleteProduct = async (req, res) => {
 	}
 
 	try {
+		let product = Product.findOne({ where: { id: productId } });
+
+		if (req.user_id !== product.user_id) {
+			return res.status(403).json({ message: 'Forbidden' });
+		}
+
 		// Supression du Product
 		await Product.destroy({ where: { id: productId }, force: true });
 		return res.status(204).json({ message: 'Product deleted' });
@@ -165,6 +183,12 @@ exports.trashProduct = async (req, res) => {
 	}
 
 	try {
+		let product = Product.findOne({ where: { id: productId } });
+
+		if (req.user_id !== product.user_id) {
+			return res.status(403).json({ message: 'Forbidden' });
+		}
+
 		// Soft delete du Product
 		await Product.destroy({ where: { id: productId } });
 		return res.status(204).json({ message: 'Product soft deleted' });
@@ -181,6 +205,12 @@ exports.restoreProduct = async (req, res) => {
 	}
 
 	try {
+		let product = Product.findOne({ where: { id: productId } });
+
+		if (req.user_id !== product.user_id) {
+			return res.status(403).json({ message: 'Forbidden' });
+		}
+
 		await Product.restore({ where: { id: productId } });
 		return res.status(204).json({ message: 'Product restored' });
 	} catch (error) {
@@ -188,16 +218,23 @@ exports.restoreProduct = async (req, res) => {
 	}
 };
 
+// TODO: verifier que l'user connecté à le droit d'afficher les produits de ce congel ou que l'user est admin
 exports.getProductsByFreezerId = async (req, res) => {
 	let freezerId = parseInt(req.params.id);
 
 	if (!freezerId) {
 		return res.status(400).json({ message: 'Missing parameters' });
 	}
-
 	try {
 		const products = await Product.findAll({
-			where: { freezer_id: freezerId },
+			where: {
+				freezer_id: freezerId,
+				[Op.and]: [
+					{
+						user_id: req.user_id,
+					},
+				],
+			},
 			include: [
 				{
 					model: ProductType,
@@ -205,10 +242,11 @@ exports.getProductsByFreezerId = async (req, res) => {
 				},
 				{
 					model: Freezer,
-					attributes: ['id', 'name'],
+					attributes: ['id', 'name', 'user_id'],
 				},
 			],
 		});
+
 		return res.json({ data: products });
 	} catch (error) {
 		return res.status(500).json({ message: 'Database error', error: error });
@@ -220,6 +258,10 @@ exports.getProductsByUserId = async (req, res) => {
 
 	if (!userId) {
 		return res.status(400).json({ message: 'Missing parameters' });
+	}
+
+	if (req.user_id !== userId && !req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
 	}
 
 	try {
@@ -243,6 +285,7 @@ exports.getProductsByUserId = async (req, res) => {
 };
 
 exports.searchProduct = async (req, res) => {
+	// TODO: verifier que les produits retournés appartiennent à cet user ou que l'user est admin
 	let search = req.body.search.trim().toLowerCase();
 
 	if (!search) {

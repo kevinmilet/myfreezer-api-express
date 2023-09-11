@@ -43,6 +43,12 @@ const checkjwtTokenMiddleware = (req, res, next) => {
 		if (err) {
 			return res.status(401).json({ message: 'Bad token' });
 		}
+
+		// on récupére le payload et on stocke les valeurs dans la requête pour pouvoir les utiliser dans les controleurs
+		req.user_id = decodedToken.id;
+		req.isAdmin = decodedToken.is_admin === 1;
+		req.isActive = decodedToken.is_active === 1;
+
 		next();
 	});
 };

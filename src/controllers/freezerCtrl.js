@@ -3,9 +3,12 @@ const DB = require('../config/db.config');
 const Freezer = DB.Freezer;
 const User = DB.User;
 const FreezerType = DB.FreezerType;
-const { QueryTypes } = require('sequelize');
 
 exports.getAllFreezers = async (req, res) => {
+	if (!req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
+	}
+
 	try {
 		let freezers = await Freezer.findAll();
 		return res.json({ data: freezers });
@@ -38,6 +41,10 @@ exports.getFreezerById = async (req, res) => {
 
 		if (freezer === null) {
 			return res.status(404).json({ message: 'Freezer not found' });
+		}
+
+		if (freezer.user_id !== req.user_id && !req.isAdmin) {
+			return res.status(403).json({ message: 'Forbidden' });
 		}
 
 		return res.json({ data: freezer });
@@ -89,6 +96,10 @@ exports.updateFreezer = async (req, res) => {
 			return res.status(404).json({ message: 'Freezer not found' });
 		}
 
+		if (req.user_id !== freezer.user_id) {
+			return res.status(403).json({ message: 'Forbidden' });
+		}
+
 		const data = {
 			name: '',
 			freezer_type_id: 0,
@@ -121,6 +132,12 @@ exports.trashFreezer = async (req, res) => {
 	}
 
 	try {
+		let freezer = Freezer.findOne({ where: { id: freezerId } });
+
+		if (req.user_id !== freezer.user_id) {
+			return res.status(403).json({ message: 'Forbidden' });
+		}
+
 		// Soft delete du freezer
 		await Freezer.destroy({ where: { id: freezerId } });
 
@@ -138,6 +155,12 @@ exports.restoreFreezer = async (req, res) => {
 	}
 
 	try {
+		let freezer = Freezer.findOne({ where: { id: freezerId } });
+
+		if (req.user_id !== freezer.user_id) {
+			return res.status(403).json({ message: 'Forbidden' });
+		}
+
 		await Freezer.restore({ where: { id: freezerId } });
 
 		return res.status(204).json({ message: 'Freezer restored' });
@@ -154,6 +177,12 @@ exports.deleteFreezer = async (req, res) => {
 	}
 
 	try {
+		let freezer = Freezer.findOne({ where: { id: freezerId } });
+
+		if (req.user_id !== freezer.user_id) {
+			return res.status(403).json({ message: 'Forbidden' });
+		}
+
 		// Supression du Freezer
 		await Freezer.destroy({ where: { id: freezerId }, force: true });
 		return res.status(204).json({ message: 'Freezer deleted' });
@@ -167,6 +196,10 @@ exports.getFreezersByUserId = async (req, res) => {
 
 	if (!userId) {
 		return res.status(400).json({ message: 'Missing parameters' });
+	}
+
+	if (req.user_id !== userId && !req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
 	}
 
 	try {

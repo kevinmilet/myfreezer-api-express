@@ -39,6 +39,10 @@ exports.createFreezerType = async (req, res) => {
 		return res.status(400).json({ message: 'Missing data' });
 	}
 
+	if (!req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
+	}
+
 	try {
 		let freezerType = await FreezerType.findOne({
 			where: { name: req.body.name.trim().toLowerCase() },
@@ -70,6 +74,10 @@ exports.updateFreezerType = async (req, res) => {
 
 	if (!id) {
 		return res.status(400).json({ message: 'Missing parameters' });
+	}
+
+	if (!req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
 	}
 
 	try {
@@ -105,6 +113,11 @@ exports.deleteFreezerType = async (req, res) => {
 	if (!id) {
 		return res.status(400).json({ message: 'Missing parameters' });
 	}
+
+	if (!req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
+	}
+
 	try {
 		// Supression du freezer type
 		await FreezerType.destroy({ where: { id: id }, force: true });
@@ -122,6 +135,10 @@ exports.trashFreezerType = async (req, res) => {
 		return res.status(400).json({ message: 'Missing parameters' });
 	}
 
+	if (!req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
+	}
+
 	try {
 		// Soft delete
 		await reezerType.destroy({ where: { id: id } });
@@ -136,6 +153,10 @@ exports.untrashFreezerType = async (req, res) => {
 
 	if (!id) {
 		return res.status(400).json({ message: 'Missing parameters' });
+	}
+
+	if (!req.isAdmin) {
+		return res.status(403).json({ message: 'Forbidden' });
 	}
 
 	try {
