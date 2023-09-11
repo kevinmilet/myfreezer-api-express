@@ -1,6 +1,7 @@
 // Import des modules nécessaires
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
@@ -40,6 +41,10 @@ const swaggerSpec = swaggerJSDoc(options);
 // Initialisation du serveur
 const app = express();
 
+// Helmet
+app.use(helmet());
+
+// CORS
 app.use(
 	cors({
 		origin: '*',
