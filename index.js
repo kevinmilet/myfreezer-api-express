@@ -42,7 +42,11 @@ const swaggerSpec = swaggerJSDoc(options);
 const app = express();
 
 // Helmet
-app.use(helmet());
+app.use(
+	helmet({
+		crossOriginResourcePolicy: false,
+	})
+);
 
 // CORS
 app.use(

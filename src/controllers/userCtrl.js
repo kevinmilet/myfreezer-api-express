@@ -2,6 +2,22 @@ const { QueryTypes, Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 const DB = require('../config/db.config');
 const User = DB.User;
+const validator = require('password-validator');
+
+const schema = new validator()
+	.is()
+	.min(8)
+	.has()
+	.uppercase()
+	.has()
+	.lowercase()
+	.has()
+	.digits()
+	.has()
+	.symbols()
+	.has()
+	.not()
+	.spaces();
 
 /**
  * Recupére tous les users
@@ -63,6 +79,12 @@ exports.createUser = async (req, res) => {
 		return res.status(400).json({ message: 'Missing data' });
 	}
 
+	let verif = schema.validate(password.trim(), { details: true });
+
+	if (verif.length != 0) {
+		return res.status(400).json({ message: verif });
+	}
+
 	try {
 		// Vérifie si l'user n'existe pas déjà
 		let user = await User.findOne({ where: { email: email }, raw: true });
@@ -75,7 +97,7 @@ exports.createUser = async (req, res) => {
 
 		// Hashage du mot de passe
 		let hash = await bcrypt.hash(
-			password,
+			password.trim(),
 			parseInt(process.env.BCRYPT_SALT_ROUND)
 		);
 
