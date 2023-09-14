@@ -1,6 +1,10 @@
 const DB = require('../config/db.config');
-const productType = require('../models/product-type');
 const ProductType = DB.ProductType;
+const {
+	RequestError,
+	ProductTypeError,
+	ForbiddenError,
+} = require('../errors/customErrors');
 
 /**
  * Récupère tous les produits
@@ -8,12 +12,13 @@ const ProductType = DB.ProductType;
  * @param {*} req
  * @param {*} res
  */
-exports.getAllProductTypes = (req, res) => {
-	ProductType.findAll()
-		.then(productType => res.json({ data: productType }))
-		.catch(err => {
-			res.status(500).json({ message: 'Database error', error: err });
-		});
+exports.getAllProductTypes = async (req, res, next) => {
+	try {
+		let productType = await ProductType.findAll();
+		return res.json({ data: productType });
+	} catch (error) {
+		next(error);
+	}
 };
 
 /**
@@ -23,26 +28,26 @@ exports.getAllProductTypes = (req, res) => {
  * @param {*} res
  * @returns
  */
-exports.getProductTypeById = async (req, res) => {
-	let id = parseInt(req.params.id);
-
-	if (!id) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
+exports.getProductTypeById = async (req, res, next) => {
 	try {
+		let id = parseInt(req.params.id);
+
+		if (!id) {
+			throw new RequestError('Missing parameter');
+		}
+
 		let productType = await ProductType.findOne({
 			where: { id: id },
 			raw: true,
 		});
 
 		if (productType === null) {
-			return res.status(404).json({ message: 'Product Type not found' });
+			throw new ProductTypeError('Product type not found', 4);
 		}
 
 		return res.json({ data: productType });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
@@ -53,16 +58,16 @@ exports.getProductTypeById = async (req, res) => {
  * @param {*} res
  * @returns
  */
-exports.createProductType = async (req, res) => {
-	if (!req.body.name) {
-		return res.status(400).json({ message: 'Missing data' });
-	}
-
-	if (!req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
-	}
-
+exports.createProductType = async (req, res, next) => {
 	try {
+		if (!req.body.name) {
+			throw new RequestError('Missing data');
+		}
+
+		if (!req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
 		let productType = await ProductType.findOne({
 			where: { name: req.body.name.trim().toLowerCase() },
 			raw: true,
@@ -72,9 +77,10 @@ exports.createProductType = async (req, res) => {
 			productType !== null &&
 			productType.name.toLowerCase() == req.body.name.trim().toLowerCase()
 		) {
-			return res.status(409).json({
-				message: `The product type '${req.body.name}' already exists`,
-			});
+			throw new ProductTypeError(
+				`The product type '${req.body.name}' already exists`,
+				null
+			);
 		}
 
 		// On nettoie et on formate le nom
@@ -84,7 +90,7 @@ exports.createProductType = async (req, res) => {
 
 		return res.json({ message: 'Product Type created', data: newPT });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
@@ -95,31 +101,32 @@ exports.createProductType = async (req, res) => {
  * @param {*} res
  * @returns
  */
-exports.updateProductType = async (req, res) => {
-	let id = parseInt(req.params.id);
-
-	if (!id) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
-	if (!req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
-	}
-
+exports.updateProductType = async (req, res, next) => {
 	try {
+		let id = parseInt(req.params.id);
+
+		if (!id) {
+			throw new RequestError('Missing parameter');
+		}
+
+		if (!req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
 		let productType = await ProductType.findOne({
 			where: { id: id },
 			raw: true,
 		});
 
 		if (productType === null) {
-			return res.status(404).json({ message: 'Product Type not found' });
+			throw new ProductTypeError('Product type not found', 3);
 		} else if (
 			productType.name.toLowerCase() == req.body.name.trim().toLowerCase()
 		) {
-			return res.status(409).json({
-				message: `The product type '${req.body.name}' already exists`,
-			});
+			throw new ProductTypeError(
+				`The product type '${req.body.name}' already exists`,
+				null
+			);
 		}
 
 		// On nettoie et on formate le nom
@@ -129,7 +136,7 @@ exports.updateProductType = async (req, res) => {
 
 		return res.json({ message: 'Product type updated', data: updatedPT });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
@@ -140,62 +147,86 @@ exports.updateProductType = async (req, res) => {
  * @param {*} res
  * @returns
  */
-exports.deleteProductType = async (req, res) => {
-	let id = parseInt(req.params.id);
-
-	if (!id) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
-	if (!req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
-	}
-
+exports.deleteProductType = async (req, res, next) => {
 	try {
+		let id = parseInt(req.params.id);
+
+		if (!id) {
+			throw new RequestError('Missing parameter');
+		}
+
+		if (!req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
+		let productType = await ProductType.findOne({
+			where: { id: id },
+		});
+
+		if (productType === null) {
+			throw new ProductTypeError('Product type not found', 3);
+		}
+
 		// Supression du Product type
 		await ProductType.destroy({ where: { id: id }, force: true });
 
 		return res.status(204).json({ message: 'Product type deleted' });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
-exports.trashProductType = async (req, res) => {
-	let id = parseInt(req.params.id);
-
-	if (!id) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
-	if (!req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
-	}
-
+exports.trashProductType = async (req, res, next) => {
 	try {
+		let id = parseInt(req.params.id);
+
+		if (!id) {
+			throw new RequestError('Missing parameter');
+		}
+
+		if (!req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
+		let productType = await ProductType.findOne({
+			where: { id: id },
+		});
+
+		if (productType === null) {
+			throw new ProductTypeError('Product type not found', 3);
+		}
+
 		// Soft delete
 		await ProductType.destroy({ where: { id: id } });
 		return res.status(204).json({ message: 'Product type soft deleted' });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
 exports.restoreProductType = async (req, res) => {
-	let id = parseInt(req.params.id);
-
-	if (!id) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
-	if (!req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
-	}
-
 	try {
+		let id = parseInt(req.params.id);
+
+		if (!id) {
+			throw new RequestError('Missing parameter');
+		}
+
+		if (!req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
+		let productType = await ProductType.findOne({
+			where: { id: id },
+		});
+
+		if (productType === null) {
+			throw new ProductTypeError('Product type not found', 3);
+		}
+
 		await ProductType.restore({ where: { id: id } });
 		return res.status(204).json({ message: 'Product type restored' });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };

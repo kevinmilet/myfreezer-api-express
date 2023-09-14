@@ -3,6 +3,7 @@ const DB = require('../config/db.config');
 const User = DB.User;
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
+const { AuthenticationError } = require('../errors/customErrors');
 
 /**
  * Méthode de connexion
@@ -11,28 +12,29 @@ const fs = require('fs');
  * @param {*} res
  * @returns
  */
-exports.login = async (req, res) => {
-	const { email, password } = req.body;
-
-	// Validation des données
-	if (!email || !password) {
-		return res.status(400).json({ message: 'Bad request' });
-	}
-
+exports.login = async (req, res, next) => {
 	try {
+		const { email, password } = req.body;
+
+		// Validation des données
+		if (!email || !password) {
+			throw new AuthenticationError('Bad credentials', 0);
+		}
+
 		let user = await User.findOne({
 			where: { email: email },
 			raw: true,
 		});
+
 		if (user === null) {
-			return res.status(401).json({ message: "This account does'nt exist" });
+			throw new AuthenticationError("This account does'nt exist", 1);
 		}
 
 		// Vérification du mot de passe
 		let passwordTest = await bcrypt.compare(password, user.password);
 
 		if (!passwordTest) {
-			return res.status(401).json({ message: 'Wrong password' });
+			throw new AuthenticationError('Wrong password', 2);
 		}
 
 		let payload = {
@@ -52,9 +54,6 @@ exports.login = async (req, res) => {
 			jwt_token: jwt_token,
 		});
 	} catch (error) {
-		if (error.name == 'SequelizeDatabaseError') {
-			res.status(500).json({ message: 'Database Error', error: error });
-		}
-		res.status(500).json({ message: 'Login process failed', error: error });
+		next(error);
 	}
 };

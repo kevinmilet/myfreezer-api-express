@@ -3,6 +3,11 @@ const bcrypt = require('bcrypt');
 const DB = require('../config/db.config');
 const User = DB.User;
 const validator = require('password-validator');
+const {
+	RequestError,
+	UserError,
+	ForbiddenError,
+} = require('../errors/customErrors');
 
 const schema = new validator()
 	.is()
@@ -22,77 +27,75 @@ const schema = new validator()
 /**
  * Recupére tous les users
  */
-exports.getAllUsers = async (req, res) => {
-	if (!req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
-	}
-
+exports.getAllUsers = async (req, res, next) => {
 	try {
+		if (!req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
 		let users = await User.findAll();
 		return res.json({ data: users });
 	} catch (error) {
-		res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
 /**
  * Recupére un user par son id
  */
-exports.getUserById = async (req, res) => {
-	let userId = parseInt(req.params.id);
-
-	if (!userId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
-	if (!req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
-	}
-
+exports.getUserById = async (req, res, next) => {
 	try {
+		let userId = parseInt(req.params.id);
+
+		if (!userId) {
+			throw new RequestError('Missing parameter');
+		}
+
+		if (!req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
 		let user = await User.findOne({ where: { id: userId }, raw: true });
 
 		if (user === null) {
-			return res.status(404).json({ message: 'User not found' });
+			throw new UserError('User not found', 1);
 		}
 
 		return res.json({ data: user });
 	} catch (error) {
-		res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
 /**
  * Crée un user
  */
-exports.createUser = async (req, res) => {
-	const { lastname, firstname, email, password } = req.body;
-
-	const data = {
-		firstname: '',
-		lastname: '',
-		email: '',
-		password: '',
-	};
-
-	if (!lastname || !firstname || !email || !password) {
-		return res.status(400).json({ message: 'Missing data' });
-	}
-
-	let verif = schema.validate(password.trim(), { details: true });
-
-	if (verif.length != 0) {
-		return res.status(400).json({ message: verif });
-	}
-
+exports.createUser = async (req, res, next) => {
 	try {
+		const { lastname, firstname, email, password } = req.body;
+
+		const data = {
+			firstname: '',
+			lastname: '',
+			email: '',
+			password: '',
+		};
+
+		if (!lastname || !firstname || !email || !password) {
+			throw new RequestError('Missing data');
+		}
+
+		let verif = schema.validate(password.trim(), { details: true });
+
+		if (verif.length != 0) {
+			throw new RequestError(verif);
+		}
+
 		// Vérifie si l'user n'existe pas déjà
 		let user = await User.findOne({ where: { email: email }, raw: true });
 
 		if (user !== null) {
-			return res.status(409).json({
-				message: `The user with email: ${email} already exists`,
-			});
+			throw new UserError(`The user with email: ${email} already exists`, null);
 		}
 
 		// Hashage du mot de passe
@@ -112,39 +115,35 @@ exports.createUser = async (req, res) => {
 
 		return res.json({ message: 'User created', data: newUser });
 	} catch (error) {
-		console.log(error);
-		if (error.name == 'SequelizeDatabaseError') {
-			res.status(500).json({ message: 'Database Error', error: error });
-		}
-		res.status(500).json({ message: 'Unknown error' });
+		next(error);
 	}
 };
 
 /**
  * Met à jour un user
  */
-exports.updateUser = async (req, res) => {
-	let userId = parseInt(req.params.id);
-
-	const data = {
-		firstname: '',
-		lastname: '',
-		email: '',
-	};
-
-	if (!userId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
-	if (userId !== req.user_id && !req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
-	}
-
+exports.updateUser = async (req, res, next) => {
 	try {
+		let userId = parseInt(req.params.id);
+
+		const data = {
+			firstname: '',
+			lastname: '',
+			email: '',
+		};
+
+		if (!userId) {
+			throw new RequestError('Missing parameters');
+		}
+
+		if (userId !== req.user_id && !req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
 		let user = await User.findOne({ where: { id: userId }, raw: true });
 
 		if (user === null) {
-			return res.status(404).json({ message: 'User not found' });
+			throw new UserError('User not found', 1);
 		}
 
 		data.firstname =
@@ -164,48 +163,60 @@ exports.updateUser = async (req, res) => {
 
 		return res.json({ message: 'User updated', data: user });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error 1', error: error });
+		next(error);
 	}
 };
 
 /**
  * Supprime définitivement un user
  */
-exports.deleteUser = async (req, res) => {
-	let userId = parseInt(req.params.id);
-
-	if (!userId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
-	if (userId !== req.user_id && !req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
-	}
-
+exports.deleteUser = async (req, res, next) => {
 	try {
+		let userId = parseInt(req.params.id);
+
+		if (!userId) {
+			throw new RequestError('Missing parameters');
+		}
+
+		if (userId !== req.user_id && !req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
+		let user = User.findOne({ where: { id: userId } });
+
+		if (user === null) {
+			throw new UserError('User not found', 1);
+		}
+
 		await User.destroy({ where: { id: userId }, force: true });
 
 		return res.status(204).json({ message: 'User deleted' });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
 /**
  * Soft delete  un user
  */
-exports.trashUser = async (req, res) => {
-	let userId = parseInt(req.params.id);
-
-	if (!userId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
-	if (userId !== req.user_id && !req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
-	}
-
+exports.trashUser = async (req, res, next) => {
 	try {
+		let userId = parseInt(req.params.id);
+
+		if (!userId) {
+			return res.status(400).json({ message: 'Missing parameters' });
+		}
+
+		if (userId !== req.user_id && !req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
+		let user = User.findOne({ where: { id: userId } });
+
+		if (user === null) {
+			throw new UserError('User not found', 1);
+		}
+
 		await User.destroy({ where: { id: userId } });
 
 		return res.status(204).json({ message: 'User soft deleted' });
@@ -217,38 +228,44 @@ exports.trashUser = async (req, res) => {
 /**
  * Récupére un user soft deleted
  */
-exports.untrashUser = async (req, res) => {
-	let userId = parseInt(req.params.id);
-
-	if (!userId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
-	if (userId !== req.user_id && !req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
-	}
-
+exports.untrashUser = async (req, res, next) => {
 	try {
+		let userId = parseInt(req.params.id);
+
+		if (!userId) {
+			return res.status(400).json({ message: 'Missing parameters' });
+		}
+
+		if (userId !== req.user_id && !req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
+		let user = User.findOne({ where: { id: userId } });
+
+		if (user === null) {
+			throw new UserError('User not found', 1);
+		}
+
 		await User.restore({ where: { id: userId } });
 
 		return res.status(204).json({ message: 'User restored' });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
-exports.searchUser = async (req, res) => {
-	let search = req.body.search.trim().toLowerCase();
-
-	if (!search) {
-		return res.status(204);
-	}
-
-	if (!req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
-	}
-
+exports.searchUser = async (req, res, next) => {
 	try {
+		let search = req.body.search.trim().toLowerCase();
+
+		if (!search) {
+			return res.status(204);
+		}
+
+		if (!req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
 		const users = await User.findAll({
 			where: {
 				[Op.or]: [
@@ -273,11 +290,11 @@ exports.searchUser = async (req, res) => {
 		});
 
 		if (users === null) {
-			return res.status(404).json({ message: 'User not found' });
+			throw new UserError('User not found', 1);
 		}
 
 		return res.json({ data: users });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };

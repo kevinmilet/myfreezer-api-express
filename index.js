@@ -8,6 +8,7 @@ const swaggerUi = require('swagger-ui-express');
 let DB = require('./src/config/db.config');
 
 const checkjwtTokenMiddleware = require('./src/middlewares/checktoken');
+const errorHandler = require('./src/errors/errorHandler');
 
 // Config Swagger pour la documentation
 const swaggerDefinition = {
@@ -86,13 +87,7 @@ app.get('*', (req, res) =>
 );
 
 // Gestion des erreurs
-app.use((error, req, res, next) => {
-	console.log('Je suis dans le middleware');
-	console.log(error);
-	return res
-		.status(error.statusCode || 500)
-		.json({ message: error.message, error: error });
-});
+app.use(errorHandler);
 
 // Démarage du serveur
 DB.sequelize
@@ -100,9 +95,7 @@ DB.sequelize
 	.then(() => console.log('Database connection OK'))
 	.then(() => {
 		app.listen(process.env.PORT, () => {
-			console.log(
-				`This server is running on port ${process.env.PORT}. Have fun !!`
-			);
+			console.log(`This server is running on port ${process.env.PORT}.`);
 		});
 	})
 	.catch(err => console.error('Database error', err));

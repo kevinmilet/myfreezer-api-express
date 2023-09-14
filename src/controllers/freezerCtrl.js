@@ -7,7 +7,7 @@ const {
 	RequestError,
 	FreezerError,
 	ForbiddenError,
-} = require('../shared/error');
+} = require('../errors/customErrors');
 
 exports.getAllFreezers = async (req, res, next) => {
 	try {
@@ -45,7 +45,7 @@ exports.getFreezerById = async (req, res, next) => {
 		});
 
 		if (freezer === null) {
-			throw new FreezerError('Freezer not found');
+			throw new FreezerError('Freezer not found', 0);
 		}
 
 		if (freezer.user_id !== req.user_id && !req.isAdmin) {
@@ -126,7 +126,7 @@ exports.updateFreezer = async (req, res, next) => {
 		});
 
 		if (freezer === null) {
-			throw new FreezerError('Freezer not found');
+			throw new FreezerError('Freezer not found', 0);
 		}
 
 		if (req.user_id !== freezer.user_id) {
@@ -167,6 +167,10 @@ exports.trashFreezer = async (req, res, next) => {
 
 		let freezer = Freezer.findOne({ where: { id: freezerId } });
 
+		if (freezer === null) {
+			throw new FreezerError('Freezer not found', 0);
+		}
+
 		if (req.user_id !== freezer.user_id) {
 			throw new ForbiddenError('Forbidden');
 		}
@@ -190,6 +194,10 @@ exports.restoreFreezer = async (req, res, next) => {
 
 		let freezer = Freezer.findOne({ where: { id: freezerId } });
 
+		if (freezer === null) {
+			throw new FreezerError('Freezer not found', 0);
+		}
+
 		if (req.user_id !== freezer.user_id) {
 			throw new ForbiddenError('Forbidden');
 		}
@@ -211,6 +219,10 @@ exports.deleteFreezer = async (req, res, next) => {
 		}
 
 		let freezer = Freezer.findOne({ where: { id: freezerId } });
+
+		if (freezer === null) {
+			throw new FreezerError('Freezer not found', 0);
+		}
 
 		if (req.user_id !== freezer.user_id) {
 			throw new ForbiddenError('Forbidden');

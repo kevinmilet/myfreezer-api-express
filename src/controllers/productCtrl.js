@@ -1,31 +1,37 @@
 // Import des modules nécessaires
-const { QueryTypes, Op } = require('sequelize');
+const { Op } = require('sequelize');
 const DB = require('../config/db.config');
 const Product = DB.Product;
 const User = DB.User;
 const Freezer = DB.Freezer;
 const ProductType = DB.ProductType;
+const {
+	RequestError,
+	ProductError,
+	ForbiddenError,
+} = require('../errors/customErrors');
 
-exports.getAllProducts = (req, res) => {
-	if (!req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
+exports.getAllProducts = async (req, res, next) => {
+	try {
+		if (!req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
+		let products = await Product.findAll();
+		return res.json({ data: products });
+	} catch (error) {
+		next(error);
 	}
-
-	Product.findAll()
-		.then(products => res.json({ data: products }))
-		.catch(err =>
-			res.status(500).json({ message: 'Database error', error: err })
-		);
 };
 
-exports.getProductById = async (req, res) => {
-	let productId = parseInt(req.params.id);
-
-	if (!productId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
+exports.getProductById = async (req, res, next) => {
 	try {
+		let productId = parseInt(req.params.id);
+
+		if (!productId) {
+			throw new RequestError('Missing parameter');
+		}
+
 		let product = await Product.findOne({
 			where: { id: productId },
 			include: [
@@ -45,33 +51,134 @@ exports.getProductById = async (req, res) => {
 		});
 
 		if (product === null) {
-			return res.status(404).json({ message: 'Product not found' });
+			throw new ProductError('Product not found', 2);
 		}
 
 		if (product.user_id !== req.user_id && !req.isAdmin) {
-			return res.status(403).json({ message: 'Forbidden' });
+			throw new ForbiddenError('Forbidden');
 		}
 
 		return res.json({ data: product });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
-exports.createProduct = async (req, res) => {
-	const { name, freezer_id, user_id, product_type_id, adding_date, quantity } =
-		req.body;
-
-	if (
-		!name ||
-		!freezer_id ||
-		!user_id ||
-		!product_type_id | !quantity | !adding_date
-	) {
-		return res.status(400).json({ message: 'Missing data' });
-	}
-
+// TODO: verifier que l'user connecté à le droit d'afficher les produits de ce congel ou que l'user est admin
+exports.getProductsByFreezerId = async (req, res, next) => {
 	try {
+		let freezerId = parseInt(req.params.id);
+
+		if (!freezerId) {
+			throw new RequestError('Missing parameters');
+		}
+
+		const products = await Product.findAll({
+			where: {
+				freezer_id: freezerId,
+				[Op.and]: [
+					{
+						user_id: req.user_id,
+					},
+				],
+			},
+			include: [
+				{
+					model: ProductType,
+					attributes: ['id', 'name'],
+				},
+				{
+					model: Freezer,
+					attributes: ['id', 'name', 'user_id'],
+				},
+			],
+		});
+
+		return res.json({ data: products });
+	} catch (error) {
+		next(error);
+	}
+};
+
+exports.getProductsByUserId = async (req, res, next) => {
+	try {
+		let userId = parseInt(req.params.id);
+
+		if (!userId) {
+			throw new RequestError('Missing parameters');
+		}
+
+		if (req.user_id !== userId && !req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
+		const products = await Product.findAll({
+			where: { user_id: userId },
+			include: [
+				{
+					model: ProductType,
+					attributes: ['id', 'name'],
+				},
+				{
+					model: Freezer,
+					attributes: ['id', 'name'],
+				},
+			],
+		});
+		return res.json({ data: products });
+	} catch (error) {
+		next(error);
+	}
+};
+
+exports.searchProduct = async (req, res, next) => {
+	try {
+		// TODO: verifier que les produits retournés appartiennent à cet user ou que l'user est admin
+		let search = req.body.search.trim().toLowerCase();
+
+		if (!search) {
+			return res.status(204);
+		}
+
+		const products = await Product.findAll({
+			where: {
+				name: {
+					[Op.like]: `%${search}%`,
+				},
+			},
+			raw: true,
+		});
+
+		if (products === null) {
+			throw new ProductError('Product not found', 2);
+		}
+
+		return res.json({ data: products });
+	} catch (error) {
+		next(error);
+	}
+};
+
+exports.createProduct = async (req, res, next) => {
+	try {
+		const {
+			name,
+			freezer_id,
+			user_id,
+			product_type_id,
+			adding_date,
+			quantity,
+		} = req.body;
+
+		if (
+			!name ||
+			!freezer_id ||
+			!user_id ||
+			!product_type_id | !quantity | !adding_date
+		) {
+			throw new RequestError('Missing data');
+		}
+
 		const data = {
 			name: '',
 			freezer_id: null,
@@ -91,29 +198,29 @@ exports.createProduct = async (req, res) => {
 		let newProduct = await Product.create(data);
 		return res.json({ message: 'Product created', data: newProduct });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
-exports.updateProduct = async (req, res) => {
-	let productId = parseInt(req.params.id);
-
-	if (!productId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
+exports.updateProduct = async (req, res, next) => {
 	try {
+		let productId = parseInt(req.params.id);
+
+		if (!productId) {
+			throw new RequestError('Missing parameters');
+		}
+
 		let product = await Product.findOne({
 			where: { id: productId },
 			raw: true,
 		});
 
 		if (product === null) {
-			return res.status(404).json({ message: 'Product not found' });
+			throw new ProductError('Product not found', 2);
 		}
 
 		if (req.user_id !== product.user_id) {
-			return res.status(403).json({ message: 'Forbidden' });
+			throw new ForbiddenError('Forbidden');
 		}
 
 		const data = {
@@ -149,165 +256,83 @@ exports.updateProduct = async (req, res) => {
 
 		return res.json({ message: 'Product updated', data: updatedProduct });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error 2', error: error });
+		next(error);
 	}
 };
 
-exports.deleteProduct = async (req, res) => {
-	let productId = parseInt(req.params.id);
-
-	if (!productId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
+exports.deleteProduct = async (req, res, next) => {
 	try {
+		let productId = parseInt(req.params.id);
+
+		if (!productId) {
+			throw new RequestError('Missing parameters');
+		}
+
 		let product = Product.findOne({ where: { id: productId } });
 
+		if (product === null) {
+			throw new ProductError('Product not found', 2);
+		}
+
 		if (req.user_id !== product.user_id) {
-			return res.status(403).json({ message: 'Forbidden' });
+			throw new ForbiddenError('Forbidden');
 		}
 
 		// Supression du Product
 		await Product.destroy({ where: { id: productId }, force: true });
 		return res.status(204).json({ message: 'Product deleted' });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
-exports.trashProduct = async (req, res) => {
-	let productId = parseInt(req.params.id);
-
-	if (!productId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
+exports.trashProduct = async (req, res, next) => {
 	try {
+		let productId = parseInt(req.params.id);
+
+		if (!productId) {
+			throw new RequestError('Missing parameters');
+		}
+
 		let product = Product.findOne({ where: { id: productId } });
 
+		if (product === null) {
+			throw new ProductError('Product not found', 2);
+		}
+
 		if (req.user_id !== product.user_id) {
-			return res.status(403).json({ message: 'Forbidden' });
+			throw new ForbiddenError('Forbidden');
 		}
 
 		// Soft delete du Product
 		await Product.destroy({ where: { id: productId } });
 		return res.status(204).json({ message: 'Product soft deleted' });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
-exports.restoreProduct = async (req, res) => {
-	let productId = parseInt(req.params.id);
-
-	if (!productId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
+exports.restoreProduct = async (req, res, next) => {
 	try {
+		let productId = parseInt(req.params.id);
+
+		if (!productId) {
+			throw new RequestError('Missing parameters');
+		}
+
 		let product = Product.findOne({ where: { id: productId } });
 
+		if (product === null) {
+			throw new ProductError('Product not found', 2);
+		}
+
 		if (req.user_id !== product.user_id) {
-			return res.status(403).json({ message: 'Forbidden' });
+			throw new ForbiddenError('Forbidden');
 		}
 
 		await Product.restore({ where: { id: productId } });
 		return res.status(204).json({ message: 'Product restored' });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
-	}
-};
-
-// TODO: verifier que l'user connecté à le droit d'afficher les produits de ce congel ou que l'user est admin
-exports.getProductsByFreezerId = async (req, res) => {
-	let freezerId = parseInt(req.params.id);
-
-	if (!freezerId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-	try {
-		const products = await Product.findAll({
-			where: {
-				freezer_id: freezerId,
-				[Op.and]: [
-					{
-						user_id: req.user_id,
-					},
-				],
-			},
-			include: [
-				{
-					model: ProductType,
-					attributes: ['id', 'name'],
-				},
-				{
-					model: Freezer,
-					attributes: ['id', 'name', 'user_id'],
-				},
-			],
-		});
-
-		return res.json({ data: products });
-	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
-	}
-};
-
-exports.getProductsByUserId = async (req, res) => {
-	let userId = parseInt(req.params.id);
-
-	if (!userId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
-	if (req.user_id !== userId && !req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
-	}
-
-	try {
-		const products = await Product.findAll({
-			where: { user_id: userId },
-			include: [
-				{
-					model: ProductType,
-					attributes: ['id', 'name'],
-				},
-				{
-					model: Freezer,
-					attributes: ['id', 'name'],
-				},
-			],
-		});
-		return res.json({ data: products });
-	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
-	}
-};
-
-exports.searchProduct = async (req, res) => {
-	// TODO: verifier que les produits retournés appartiennent à cet user ou que l'user est admin
-	let search = req.body.search.trim().toLowerCase();
-
-	if (!search) {
-		return res.status(204);
-	}
-
-	try {
-		const products = await Product.findAll({
-			where: {
-				name: {
-					[Op.like]: `%${search}%`,
-				},
-			},
-			raw: true,
-		});
-
-		if (products === null) {
-			return res.status(404).json({ message: 'Products not found' });
-		}
-
-		return res.json({ data: products });
-	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
