@@ -33,7 +33,20 @@ exports.getAllUsers = async (req, res, next) => {
 			throw new ForbiddenError('Forbidden');
 		}
 
-		let users = await User.findAll();
+		let users = await User.findAll({
+			attributes: [
+				'id',
+				'account_id',
+				'firstname',
+				'lastname',
+				'email',
+				'is_active',
+				'is_admin',
+				'createdAt',
+				'updatedAt',
+				'deletedAt',
+			],
+		});
 		return res.json({ data: users });
 	} catch (error) {
 		next(error);
@@ -55,7 +68,21 @@ exports.getUserById = async (req, res, next) => {
 			throw new ForbiddenError('Forbidden');
 		}
 
-		let user = await User.findOne({ where: { id: userId }, raw: true });
+		let user = await User.findOne({
+			where: { id: userId },
+			attributes: [
+				'id',
+				'account_id',
+				'firstname',
+				'lastname',
+				'email',
+				'is_active',
+				'is_admin',
+				'createdAt',
+				'updatedAt',
+				'deletedAt',
+			],
+		});
 
 		if (user === null) {
 			throw new UserError('User not found', 1);
