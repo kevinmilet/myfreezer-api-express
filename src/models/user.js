@@ -1,5 +1,6 @@
 // Import des modules nécessaires
 const { DataTypes } = require('sequelize');
+const bcrypt = require('bcrypt');
 
 // Définition du modèle
 module.exports = sequelize => {
@@ -58,6 +59,18 @@ module.exports = sequelize => {
 			paranoid: true,
 		}
 	);
+
+	User.beforeCreate(async (user, options) => {
+		let hash = await bcrypt.hash(
+			user.password.trim(),
+			parseInt(process.env.BCRYPT_SALT_ROUND)
+		);
+		user.password = hash;
+	});
+
+	User.checkPassword = async (data, encrypted) => {
+		return await bcrypt.compare(data, encrypted);
+	};
 
 	return User;
 };

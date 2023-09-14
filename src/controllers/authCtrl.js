@@ -1,4 +1,3 @@
-const bcrypt = require('bcrypt');
 const DB = require('../config/db.config');
 const User = DB.User;
 const jwt = require('jsonwebtoken');
@@ -31,7 +30,7 @@ exports.login = async (req, res, next) => {
 		}
 
 		// Vérification du mot de passe
-		let passwordTest = await bcrypt.compare(password, user.password);
+		let passwordTest = await User.checkPassword(password, user.password);
 
 		if (!passwordTest) {
 			throw new AuthenticationError('Wrong password', 2);

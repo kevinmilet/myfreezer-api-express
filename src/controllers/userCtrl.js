@@ -98,14 +98,7 @@ exports.createUser = async (req, res, next) => {
 			throw new UserError(`The user with email: ${email} already exists`, null);
 		}
 
-		// Hashage du mot de passe
-		let hash = await bcrypt.hash(
-			password.trim(),
-			parseInt(process.env.BCRYPT_SALT_ROUND)
-		);
-
 		// Remaping des datas
-		data.password = hash;
 		data.firstname = firstname.trim().toLowerCase();
 		data.lastname = lastname.trim().toLowerCase();
 		data.email = email.trim().toLowerCase();
