@@ -85,6 +85,15 @@ app.get('*', (req, res) =>
 	res.status(501).send('What the hell are you doing !?!')
 );
 
+// Gestion des erreurs
+app.use((error, req, res, next) => {
+	console.log('Je suis dans le middleware');
+	console.log(error);
+	return res
+		.status(error.statusCode || 500)
+		.json({ message: error.message, error: error });
+});
+
 // Démarage du serveur
 DB.sequelize
 	.authenticate()

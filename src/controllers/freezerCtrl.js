@@ -3,28 +3,33 @@ const DB = require('../config/db.config');
 const Freezer = DB.Freezer;
 const User = DB.User;
 const FreezerType = DB.FreezerType;
+const {
+	RequestError,
+	FreezerError,
+	ForbiddenError,
+} = require('../shared/error');
 
-exports.getAllFreezers = async (req, res) => {
-	if (!req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
-	}
-
+exports.getAllFreezers = async (req, res, next) => {
 	try {
+		if (!req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
 		let freezers = await Freezer.findAll();
 		return res.json({ data: freezers });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
-exports.getFreezerById = async (req, res) => {
-	let freezerId = parseInt(req.params.id);
-
-	if (!freezerId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
+exports.getFreezerById = async (req, res, next) => {
 	try {
+		let freezerId = parseInt(req.params.id);
+
+		if (!freezerId) {
+			throw new RequestError('Missing parameter');
+		}
+
 		let freezer = await Freezer.findOne({
 			where: { id: freezerId },
 			include: [
@@ -40,27 +45,55 @@ exports.getFreezerById = async (req, res) => {
 		});
 
 		if (freezer === null) {
-			return res.status(404).json({ message: 'Freezer not found' });
+			throw new FreezerError('Freezer not found');
 		}
 
 		if (freezer.user_id !== req.user_id && !req.isAdmin) {
-			return res.status(403).json({ message: 'Forbidden' });
+			throw new ForbiddenError('Forbidden');
 		}
 
 		return res.json({ data: freezer });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
-exports.createFreezer = async (req, res) => {
-	const { name, freezer_type_id, user_id } = req.body;
-
-	if (!name || !freezer_type_id || !user_id) {
-		return res.status(400).json({ message: 'Missing data' });
-	}
-
+exports.getFreezersByUserId = async (req, res, next) => {
 	try {
+		let userId = parseInt(req.params.id);
+
+		if (!userId) {
+			throw new RequestError('Missing parameters');
+		}
+
+		if (req.user_id !== userId && !req.isAdmin) {
+			throw new ForbiddenError('Forbidden');
+		}
+
+		const freezers = await Freezer.findAll({
+			where: { user_id: userId },
+			include: [
+				{
+					model: FreezerType,
+					attributes: ['id', 'name'],
+				},
+			],
+		});
+
+		return res.json({ data: freezers });
+	} catch (error) {
+		next(error);
+	}
+};
+
+exports.createFreezer = async (req, res, next) => {
+	try {
+		const { name, freezer_type_id, user_id } = req.body;
+
+		if (!name || !freezer_type_id || !user_id) {
+			throw new RequestError('Missing data');
+		}
+
 		const data = {
 			name: '',
 			freezer_type_id: null,
@@ -75,29 +108,29 @@ exports.createFreezer = async (req, res) => {
 
 		return res.json({ message: 'Freezer created', data: newFreezer });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
-exports.updateFreezer = async (req, res) => {
-	let freezerId = parseInt(req.params.id);
-
-	if (!freezerId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
+exports.updateFreezer = async (req, res, next) => {
 	try {
+		let freezerId = parseInt(req.params.id);
+
+		if (!freezerId) {
+			throw new RequestError('Missing parameters');
+		}
+
 		let freezer = await Freezer.findOne({
 			where: { id: freezerId },
 			raw: true,
 		});
 
 		if (freezer === null) {
-			return res.status(404).json({ message: 'Freezer not found' });
+			throw new FreezerError('Freezer not found');
 		}
 
 		if (req.user_id !== freezer.user_id) {
-			return res.status(403).json({ message: 'Forbidden' });
+			throw new ForbiddenError('Forbidden');
 		}
 
 		const data = {
@@ -120,22 +153,22 @@ exports.updateFreezer = async (req, res) => {
 
 		return res.json({ message: 'Freezer updated', data: updatedFreezer });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
-exports.trashFreezer = async (req, res) => {
-	let freezerId = parseInt(req.params.id);
-
-	if (!freezerId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
+exports.trashFreezer = async (req, res, next) => {
 	try {
+		let freezerId = parseInt(req.params.id);
+
+		if (!freezerId) {
+			throw new RequestError('Missing parameters');
+		}
+
 		let freezer = Freezer.findOne({ where: { id: freezerId } });
 
 		if (req.user_id !== freezer.user_id) {
-			return res.status(403).json({ message: 'Forbidden' });
+			throw new ForbiddenError('Forbidden');
 		}
 
 		// Soft delete du freezer
@@ -143,78 +176,50 @@ exports.trashFreezer = async (req, res) => {
 
 		return res.status(204).json({ message: 'Freezer soft deleted' });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
-exports.restoreFreezer = async (req, res) => {
-	let freezerId = parseInt(req.params.id);
-
-	if (!freezerId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
+exports.restoreFreezer = async (req, res, next) => {
 	try {
+		let freezerId = parseInt(req.params.id);
+
+		if (!freezerId) {
+			throw new RequestError('Missing parameters');
+		}
+
 		let freezer = Freezer.findOne({ where: { id: freezerId } });
 
 		if (req.user_id !== freezer.user_id) {
-			return res.status(403).json({ message: 'Forbidden' });
+			throw new ForbiddenError('Forbidden');
 		}
 
 		await Freezer.restore({ where: { id: freezerId } });
 
 		return res.status(204).json({ message: 'Freezer restored' });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
-exports.deleteFreezer = async (req, res) => {
-	let freezerId = parseInt(req.params.id);
-
-	if (!freezerId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
+exports.deleteFreezer = async (req, res, next) => {
 	try {
+		let freezerId = parseInt(req.params.id);
+
+		if (!freezerId) {
+			throw new RequestError('Missing parameters');
+		}
+
 		let freezer = Freezer.findOne({ where: { id: freezerId } });
 
 		if (req.user_id !== freezer.user_id) {
-			return res.status(403).json({ message: 'Forbidden' });
+			throw new ForbiddenError('Forbidden');
 		}
 
 		// Supression du Freezer
 		await Freezer.destroy({ where: { id: freezerId }, force: true });
 		return res.status(204).json({ message: 'Freezer deleted' });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
-	}
-};
-
-exports.getFreezersByUserId = async (req, res) => {
-	let userId = parseInt(req.params.id);
-
-	if (!userId) {
-		return res.status(400).json({ message: 'Missing parameters' });
-	}
-
-	if (req.user_id !== userId && !req.isAdmin) {
-		return res.status(403).json({ message: 'Forbidden' });
-	}
-
-	try {
-		const freezers = await Freezer.findAll({
-			where: { user_id: userId },
-			include: [
-				{
-					model: FreezerType,
-					attributes: ['id', 'name'],
-				},
-			],
-		});
-
-		return res.json({ data: freezers });
-	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
