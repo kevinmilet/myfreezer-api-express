@@ -29,7 +29,7 @@ exports.getAllUsers = async (req, res) => {
 
 	try {
 		let users = await User.findAll();
-		return users;
+		return res.json({ data: users });
 	} catch (error) {
 		res.status(500).json({ message: 'Database error', error: error });
 	}
