@@ -1,3 +1,5 @@
+const logger = require('../config/logger');
+
 const errorHandler = (error, req, res, next) => {
 	// 0 - message simple
 	// 1 - message sans errors
@@ -21,7 +23,7 @@ const errorHandler = (error, req, res, next) => {
 			message = { message: error.message, error: error };
 			break;
 		default:
-			console.log('Bad debug level');
+			logger.warn('Bad debug level');
 	}
 
 	return res.status(error.statusCode || 500).json(message);

@@ -1,5 +1,5 @@
 const { Sequelize } = require('sequelize');
-
+const logger = require('./logger');
 /**
  * Connexion à la BDD
  */
@@ -46,7 +46,7 @@ db.Product.belongsTo(db.Freezer, { foreignKey: 'freezer_id' });
  * Synchro des modèles
  */
 db.sequelize.sync(err => {
-	console.log('Database Sync Error', err);
+	logger.fatal('Database Sync Error', err);
 });
 //db.sequelize.sync({ alter: true });
 

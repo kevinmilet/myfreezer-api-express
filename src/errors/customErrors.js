@@ -1,3 +1,4 @@
+const logger = require('../config/logger');
 class MainError extends Error {
 	constructor(errorMessage, errorType = '') {
 		super();
@@ -57,7 +58,7 @@ class MainError extends Error {
 				}
 				break;
 			default:
-				console.log('No handler for this error');
+				logger.warn('No handler for this error');
 		}
 	}
 }

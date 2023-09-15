@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const logger = require('./src/config/logger');
 
 let DB = require('./src/config/db.config');
 
@@ -95,10 +96,10 @@ app.use(errorHandler);
 // Démarage du serveur
 DB.sequelize
 	.authenticate()
-	.then(() => console.log('Database connection OK'))
+	.then(() => logger.info('Database connection OK'))
 	.then(() => {
 		app.listen(process.env.PORT, () => {
-			console.log(`This server is running on port ${process.env.PORT}.`);
+			logger.info(`Server is running on port ${process.env.PORT}.`);
 		});
 	})
-	.catch(err => console.error('Database error', err));
+	.catch(err => logger.fatal('Database error', err));
