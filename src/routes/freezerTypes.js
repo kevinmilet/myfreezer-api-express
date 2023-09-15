@@ -1,23 +1,58 @@
 // Import des modules nécessaires
 const express = require('express');
 const freezerTypeController = require('../controllers/freezertypeCtrl');
+const checkjwtTokenMiddleware = require('../middlewares/checktoken');
+const roleCheck = require('../middlewares/roleCheck');
 
 // Récupération du router d'express
 let router = express.Router();
 
 // Routage de la ressource FreezerType
-router.get('', freezerTypeController.getAllFreezerTypes);
+router.get(
+	'',
+	checkjwtTokenMiddleware,
+	freezerTypeController.getAllFreezerTypes
+);
 
-router.get('/:id', freezerTypeController.getFreezerTypeById);
+router.get(
+	'/:id',
+	checkjwtTokenMiddleware,
+	freezerTypeController.getFreezerTypeById
+);
 
-router.put('', freezerTypeController.createFreezerType);
+router.put(
+	'',
+	checkjwtTokenMiddleware,
+	roleCheck(true),
+	freezerTypeController.createFreezerType
+);
 
-router.put('/:id', freezerTypeController.updateFreezerType);
+router.put(
+	'/:id',
+	checkjwtTokenMiddleware,
+	roleCheck(true),
+	freezerTypeController.updateFreezerType
+);
 
-router.delete('/:id', freezerTypeController.deleteFreezerType);
+router.delete(
+	'/:id',
+	checkjwtTokenMiddleware,
+	roleCheck(true),
+	freezerTypeController.deleteFreezerType
+);
 
-router.delete('/trash/:id', freezerTypeController.trashFreezerType);
+router.delete(
+	'/trash/:id',
+	checkjwtTokenMiddleware,
+	roleCheck(true),
+	freezerTypeController.trashFreezerType
+);
 
-router.post('/untrash/:id', freezerTypeController.untrashFreezerType);
+router.post(
+	'/untrash/:id',
+	checkjwtTokenMiddleware,
+	roleCheck(true),
+	freezerTypeController.untrashFreezerType
+);
 
 module.exports = router;

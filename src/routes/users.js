@@ -2,17 +2,33 @@
 const express = require('express');
 const userController = require('../controllers/userCtrl');
 const checkjwtTokenMiddleware = require('../middlewares/checktoken');
+const roleCheck = require('../middlewares/roleCheck');
 
 let router = express.Router();
 
 /**
  * Routes pour les users
  */
-router.get('/', checkjwtTokenMiddleware, userController.getAllUsers);
+router.get(
+	'/',
+	checkjwtTokenMiddleware,
+	roleCheck(true),
+	userController.getAllUsers
+);
 
-router.get('/search', checkjwtTokenMiddleware, userController.searchUser);
+router.get(
+	'/search',
+	checkjwtTokenMiddleware,
+	roleCheck(true),
+	userController.searchUser
+);
 
-router.get('/:id', checkjwtTokenMiddleware, userController.getUserById);
+router.get(
+	'/:id',
+	checkjwtTokenMiddleware,
+	roleCheck(true),
+	userController.getUserById
+);
 
 router.put('', userController.createUser);
 

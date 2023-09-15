@@ -1,29 +1,52 @@
 // Import des modules nécessaires
 const express = require('express');
 const productController = require('../controllers/productCtrl');
+const checkjwtTokenMiddleware = require('../middlewares/checktoken');
+const roleCheck = require('../middlewares/roleCheck');
 
 // Récupération du router d'express
 let router = express.Router();
 
 // Routage de la ressource Product
-router.get('', productController.getAllProducts);
+router.get(
+	'',
+	checkjwtTokenMiddleware,
+	roleCheck(true),
+	productController.getAllProducts
+);
 
-router.get('/search', productController.searchProduct);
+router.get('/search', checkjwtTokenMiddleware, productController.searchProduct);
 
-router.get('/:id', productController.getProductById);
+router.get('/:id', checkjwtTokenMiddleware, productController.getProductById);
 
-router.put('', productController.createProduct);
+router.put('', checkjwtTokenMiddleware, productController.createProduct);
 
-router.put('/:id', productController.updateProduct);
+router.put('/:id', checkjwtTokenMiddleware, productController.updateProduct);
 
-router.delete('/:id', productController.deleteProduct);
+router.delete('/:id', checkjwtTokenMiddleware, productController.deleteProduct);
 
-router.delete('/trash/:id', productController.trashProduct);
+router.delete(
+	'/trash/:id',
+	checkjwtTokenMiddleware,
+	productController.trashProduct
+);
 
-router.post('/untrash/:id', productController.restoreProduct);
+router.post(
+	'/untrash/:id',
+	checkjwtTokenMiddleware,
+	productController.restoreProduct
+);
 
-router.get('/user/:id', productController.getProductsByUserId);
+router.get(
+	'/user/:id',
+	checkjwtTokenMiddleware,
+	productController.getProductsByUserId
+);
 
-router.get('/freezer/:id', productController.getProductsByFreezerId);
+router.get(
+	'/freezer/:id',
+	checkjwtTokenMiddleware,
+	productController.getProductsByFreezerId
+);
 
 module.exports = router;
