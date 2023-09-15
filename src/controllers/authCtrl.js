@@ -38,8 +38,7 @@ exports.login = async (req, res, next) => {
 
 		let payload = {
 			id: user.id,
-			is_admin: user.is_admin,
-			is_active: user.is_active,
+			role: user.role,
 		};
 
 		// Génération du token

@@ -43,9 +43,9 @@ module.exports = sequelize => {
 				defaultValue: true,
 				allowNull: false,
 			},
-			is_admin: {
-				type: DataTypes.BOOLEAN,
-				defaultValue: false,
+			role: {
+				type: DataTypes.INTEGER(4),
+				defaultValue: '2007',
 				allowNull: false,
 			},
 			password_request: {
