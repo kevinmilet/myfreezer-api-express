@@ -11,10 +11,6 @@ const {
 
 exports.getAllFreezers = async (req, res, next) => {
 	try {
-		if (!req.isAdmin) {
-			throw new ForbiddenError('Forbidden');
-		}
-
 		let freezers = await Freezer.findAll();
 		return res.json({ data: freezers });
 	} catch (error) {

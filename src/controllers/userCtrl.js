@@ -29,10 +29,6 @@ const schema = new validator()
  */
 exports.getAllUsers = async (req, res, next) => {
 	try {
-		if (!req.isAdmin) {
-			throw new ForbiddenError('Forbidden');
-		}
-
 		let users = await User.findAll({
 			attributes: [
 				'id',
@@ -62,10 +58,6 @@ exports.getUserById = async (req, res, next) => {
 
 		if (!userId) {
 			throw new RequestError('Missing parameter');
-		}
-
-		if (!req.isAdmin) {
-			throw new ForbiddenError('Forbidden');
 		}
 
 		let user = await User.findOne({
@@ -280,10 +272,6 @@ exports.searchUser = async (req, res, next) => {
 
 		if (!search) {
 			return res.status(204);
-		}
-
-		if (!req.isAdmin) {
-			throw new ForbiddenError('Forbidden');
 		}
 
 		const users = await User.findAll({

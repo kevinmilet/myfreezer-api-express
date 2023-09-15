@@ -64,10 +64,6 @@ exports.createProductType = async (req, res, next) => {
 			throw new RequestError('Missing data');
 		}
 
-		if (!req.isAdmin) {
-			throw new ForbiddenError('Forbidden');
-		}
-
 		let productType = await ProductType.findOne({
 			where: { name: req.body.name.trim().toLowerCase() },
 			raw: true,
@@ -107,10 +103,6 @@ exports.updateProductType = async (req, res, next) => {
 
 		if (!id) {
 			throw new RequestError('Missing parameter');
-		}
-
-		if (!req.isAdmin) {
-			throw new ForbiddenError('Forbidden');
 		}
 
 		let productType = await ProductType.findOne({
@@ -155,10 +147,6 @@ exports.deleteProductType = async (req, res, next) => {
 			throw new RequestError('Missing parameter');
 		}
 
-		if (!req.isAdmin) {
-			throw new ForbiddenError('Forbidden');
-		}
-
 		let productType = await ProductType.findOne({
 			where: { id: id },
 		});
@@ -184,10 +172,6 @@ exports.trashProductType = async (req, res, next) => {
 			throw new RequestError('Missing parameter');
 		}
 
-		if (!req.isAdmin) {
-			throw new ForbiddenError('Forbidden');
-		}
-
 		let productType = await ProductType.findOne({
 			where: { id: id },
 		});
@@ -210,10 +194,6 @@ exports.restoreProductType = async (req, res) => {
 
 		if (!id) {
 			throw new RequestError('Missing parameter');
-		}
-
-		if (!req.isAdmin) {
-			throw new ForbiddenError('Forbidden');
 		}
 
 		let productType = await ProductType.findOne({

@@ -44,10 +44,6 @@ exports.createFreezerType = async (req, res, next) => {
 			throw new RequestError('Missing data');
 		}
 
-		if (!req.isAdmin) {
-			throw new ForbiddenError('Forbidden');
-		}
-
 		let freezerType = await FreezerType.findOne({
 			where: { name: req.body.name.trim().toLowerCase() },
 			raw: true,
@@ -80,10 +76,6 @@ exports.updateFreezerType = async (req, res, next) => {
 
 		if (!id) {
 			throw new RequestError('Missing parameter');
-		}
-
-		if (!req.isAdmin) {
-			throw new ForbiddenError('Forbidden');
 		}
 
 		let freezerType = await FreezerType.findOne({
@@ -121,10 +113,6 @@ exports.deleteFreezerType = async (req, res, next) => {
 			throw new RequestError('Missing parameter');
 		}
 
-		if (!req.isAdmin) {
-			throw new ForbiddenError('Forbidden');
-		}
-
 		let freezerType = await FreezerType.findOne({
 			where: { id: id },
 		});
@@ -150,10 +138,6 @@ exports.trashFreezerType = async (req, res, next) => {
 			throw new RequestError('Missing parameters');
 		}
 
-		if (!req.isAdmin) {
-			throw new ForbiddenError('Forbidden');
-		}
-
 		let freezerType = await FreezerType.findOne({
 			where: { id: id },
 		});
@@ -177,9 +161,6 @@ exports.untrashFreezerType = async (req, res, next) => {
 			throw new RequestError('Missing parameters');
 		}
 
-		if (!req.isAdmin) {
-			throw new ForbiddenError('Forbidden');
-		}
 		let freezerType = await FreezerType.findOne({
 			where: { id: id },
 		});

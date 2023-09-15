@@ -13,10 +13,6 @@ const {
 
 exports.getAllProducts = async (req, res, next) => {
 	try {
-		if (!req.isAdmin) {
-			throw new ForbiddenError('Forbidden');
-		}
-
 		let products = await Product.findAll();
 		return res.json({ data: products });
 	} catch (error) {
