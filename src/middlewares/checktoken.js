@@ -46,7 +46,7 @@ const checkjwtTokenMiddleware = (req, res, next) => {
 
 		// on récupére le payload et on stocke les valeurs dans la requête pour pouvoir les utiliser dans les controleurs
 		req.user_id = decodedToken.id;
-		req.isAdmin = decodedToken.is_admin === 2016;
+		req.isAdmin = decodedToken.role == 2016;
 
 		next();
 	});

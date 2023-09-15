@@ -38,14 +38,14 @@ module.exports = sequelize => {
 				type: DataTypes.STRING(64),
 				is: /^[0-9a-f]{64}$/i,
 			},
-			is_active: {
+			active: {
 				type: DataTypes.BOOLEAN,
 				defaultValue: true,
 				allowNull: false,
 			},
 			role: {
 				type: DataTypes.INTEGER(4),
-				defaultValue: '2007',
+				defaultValue: 2007,
 				allowNull: false,
 			},
 			password_request: {

@@ -9,6 +9,7 @@ let DB = require('./src/config/db.config');
 
 const checkjwtTokenMiddleware = require('./src/middlewares/checktoken');
 const errorHandler = require('./src/errors/errorHandler');
+const { generalLimiter } = require('./src/middlewares/rateLimiter');
 
 // Config Swagger pour la documentation
 const swaggerDefinition = {
@@ -70,6 +71,8 @@ const product_router = require('./src/routes/products');
 const auth_router = require('./src/routes/auth');
 
 // Mise en place du routage
+app.use(generalLimiter);
+
 app.get('/', (req, res) => res.send(`I'm online. Welldone !!`));
 
 app.use('/users', user_router);

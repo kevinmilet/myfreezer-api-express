@@ -3,7 +3,6 @@ const roleCheck = (...authRoles) => {
 		if (!req?.isAdmin) {
 			return res.sendStatus(403);
 		}
-
 		const result = req.isAdmin;
 
 		if (!result) {

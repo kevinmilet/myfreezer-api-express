@@ -3,6 +3,7 @@ const express = require('express');
 const userController = require('../controllers/userCtrl');
 const checkjwtTokenMiddleware = require('../middlewares/checktoken');
 const roleCheck = require('../middlewares/roleCheck');
+const { signupLimiter } = require('../middlewares/rateLimiter');
 
 let router = express.Router();
 
@@ -30,7 +31,7 @@ router.get(
 	userController.getUserById
 );
 
-router.put('', userController.createUser);
+router.put('', signupLimiter, userController.createUser);
 
 router.put('/:id', checkjwtTokenMiddleware, userController.updateUser);
 
