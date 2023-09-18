@@ -8,6 +8,7 @@ const {
 	UserError,
 	ForbiddenError,
 } = require('../errors/customErrors');
+const logger = require('../config/logger');
 
 const schema = new validator()
 	.is()
@@ -45,6 +46,7 @@ exports.getAllUsers = async (req, res, next) => {
 		});
 		return res.json({ data: users });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -57,7 +59,8 @@ exports.getUserById = async (req, res, next) => {
 		let userId = parseInt(req.params.id);
 
 		if (!userId) {
-			throw new RequestError('Missing parameter');
+			logger.error('400 - Missing parameters');
+			throw new RequestError('Missing parameters');
 		}
 
 		let user = await User.findOne({
@@ -77,11 +80,13 @@ exports.getUserById = async (req, res, next) => {
 		});
 
 		if (user === null) {
+			logger.error('404 - User not found');
 			throw new UserError('User not found', 1);
 		}
 
 		return res.json({ data: user });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -101,12 +106,14 @@ exports.createUser = async (req, res, next) => {
 		};
 
 		if (!lastname || !firstname || !email || !password) {
+			logger.error('400 - Missing data');
 			throw new RequestError('Missing data');
 		}
 
 		let verif = schema.validate(password.trim(), { details: true });
 
 		if (verif.length != 0) {
+			logger.error(verif);
 			throw new RequestError(verif);
 		}
 
@@ -114,6 +121,7 @@ exports.createUser = async (req, res, next) => {
 		let user = await User.findOne({ where: { email: email }, raw: true });
 
 		if (user !== null) {
+			logger.error(`404 - The user with email: ${email} already exists`);
 			throw new UserError(`The user with email: ${email} already exists`, null);
 		}
 
@@ -125,6 +133,7 @@ exports.createUser = async (req, res, next) => {
 		// Création du user
 		let newUser = await User.create(data);
 
+		logger.info('User created');
 		return res.json({ message: 'User created', data: newUser });
 	} catch (error) {
 		next(error);
@@ -145,16 +154,19 @@ exports.updateUser = async (req, res, next) => {
 		};
 
 		if (!userId) {
+			logger.error('400 - Missing parameters');
 			throw new RequestError('Missing parameters');
 		}
 
 		if (userId !== req.user_id && !req.isAdmin) {
+			logger.error('403 - Forbidden');
 			throw new ForbiddenError('Forbidden');
 		}
 
 		let user = await User.findOne({ where: { id: userId }, raw: true });
 
 		if (user === null) {
+			logger.error('404 - User not found');
 			throw new UserError('User not found', 1);
 		}
 
@@ -173,6 +185,7 @@ exports.updateUser = async (req, res, next) => {
 
 		await User.update(data, { where: { id: userId } });
 
+		logger.info('User updated');
 		return res.json({ message: 'User updated', data: user });
 	} catch (error) {
 		next(error);
@@ -187,21 +200,25 @@ exports.deleteUser = async (req, res, next) => {
 		let userId = parseInt(req.params.id);
 
 		if (!userId) {
+			logger.error('400 - Missing parameters');
 			throw new RequestError('Missing parameters');
 		}
 
 		if (userId !== req.user_id && !req.isAdmin) {
+			logger.error('403 Forbidden');
 			throw new ForbiddenError('Forbidden');
 		}
 
 		let user = User.findOne({ where: { id: userId } });
 
 		if (user === null) {
+			logger.error('404 - User not found');
 			throw new UserError('User not found', 1);
 		}
 
 		await User.destroy({ where: { id: userId }, force: true });
 
+		logger.info('User deleted');
 		return res.status(204).json({ message: 'User deleted' });
 	} catch (error) {
 		next(error);
@@ -216,24 +233,28 @@ exports.trashUser = async (req, res, next) => {
 		let userId = parseInt(req.params.id);
 
 		if (!userId) {
+			logger.error('400 - Missing parameters');
 			return res.status(400).json({ message: 'Missing parameters' });
 		}
 
 		if (userId !== req.user_id && !req.isAdmin) {
+			logger.error('403 Forbidden');
 			throw new ForbiddenError('Forbidden');
 		}
 
 		let user = User.findOne({ where: { id: userId } });
 
 		if (user === null) {
+			logger.error('404 - User not found');
 			throw new UserError('User not found', 1);
 		}
 
 		await User.destroy({ where: { id: userId } });
 
-		return res.status(204).json({ message: 'User soft deleted' });
+		logger.info('User desactivated');
+		return res.status(204).json({ message: 'User desactivated' });
 	} catch (error) {
-		return res.status(500).json({ message: 'Database error', error: error });
+		next(error);
 	}
 };
 
@@ -245,21 +266,25 @@ exports.untrashUser = async (req, res, next) => {
 		let userId = parseInt(req.params.id);
 
 		if (!userId) {
+			logger.error('400 - Missing parameters');
 			return res.status(400).json({ message: 'Missing parameters' });
 		}
 
 		if (userId !== req.user_id && !req.isAdmin) {
+			logger.error('403 Forbidden');
 			throw new ForbiddenError('Forbidden');
 		}
 
 		let user = User.findOne({ where: { id: userId } });
 
 		if (user === null) {
+			logger.error('404 - User not found');
 			throw new UserError('User not found', 1);
 		}
 
 		await User.restore({ where: { id: userId } });
 
+		logger.info('User restored');
 		return res.status(204).json({ message: 'User restored' });
 	} catch (error) {
 		next(error);
@@ -298,6 +323,7 @@ exports.searchUser = async (req, res, next) => {
 		});
 
 		if (users === null) {
+			logger.error('404 - User not found');
 			throw new UserError('User not found', 1);
 		}
 

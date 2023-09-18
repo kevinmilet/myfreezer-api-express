@@ -264,12 +264,13 @@ exports.deleteProduct = async (req, res, next) => {
 			throw new RequestError('Missing parameters');
 		}
 
-		let product = Product.findOne({ where: { id: productId } });
+		let product = Product.findOne({ where: { id: productId }, raw: true });
 
 		if (product === null) {
 			throw new ProductError('Product not found', 2);
 		}
-
+		console.log(product.freezer_id);
+		console.log(req.user_id, product.user_id);
 		if (req.user_id !== product.user_id) {
 			throw new ForbiddenError('Forbidden');
 		}

@@ -3,6 +3,7 @@ const User = DB.User;
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const { AuthenticationError } = require('../errors/customErrors');
+const logger = require('../config/logger');
 
 /**
  * Méthode de connexion
@@ -17,6 +18,7 @@ exports.login = async (req, res, next) => {
 
 		// Validation des données
 		if (!email || !password) {
+			logger.error('501 - Bad credentials');
 			throw new AuthenticationError('Bad credentials', 0);
 		}
 
@@ -26,6 +28,7 @@ exports.login = async (req, res, next) => {
 		});
 
 		if (user === null) {
+			logger.error("404 - Account does'nt exist");
 			throw new AuthenticationError("This account does'nt exist", 1);
 		}
 
@@ -33,7 +36,8 @@ exports.login = async (req, res, next) => {
 		let passwordTest = await User.checkPassword(password, user.password);
 
 		if (!passwordTest) {
-			throw new AuthenticationError('Wrong password', 2);
+			logger.error('501 - Bad credentials');
+			throw new AuthenticationError('Bad credentials', 2);
 		}
 
 		let payload = {
@@ -48,10 +52,13 @@ exports.login = async (req, res, next) => {
 			algorithm: 'RS256',
 		});
 
+		logger.info(`User with login "${email}" has connected successfully`);
+
 		return res.json({
 			jwt_token: jwt_token,
 		});
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };

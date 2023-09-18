@@ -15,12 +15,18 @@ const errorHandler = (error, req, res, next) => {
 				message = { message: 'Database Error' };
 			}
 
+			logger.error(message);
+			logger.error(error);
+
 			break;
 		case 1:
 			message = { message: error.message };
+			logger.error(message);
+			logger.error(error);
 			break;
 		case 2:
 			message = { message: error.message, error: error };
+			logger.error(message);
 			break;
 		default:
 			logger.warn('Bad debug level');

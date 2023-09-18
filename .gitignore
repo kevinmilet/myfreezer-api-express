@@ -9,6 +9,6 @@
 !.vscode/launch.json
 !.vscode/extensions.json
 .history/*
-.idea/
 .env
 /src/.certs
+/.idea

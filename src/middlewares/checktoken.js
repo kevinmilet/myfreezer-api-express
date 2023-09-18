@@ -1,6 +1,7 @@
 // Import des modules nécessaires
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
+const logger = require('../config/logger');
 
 /**
  * Extraction du token
@@ -34,6 +35,7 @@ const checkjwtTokenMiddleware = (req, res, next) => {
 		req.headers.authorization && extractBearer(req.headers.authorization);
 
 	if (!jwt_token) {
+		logger.error('401 - Non authorisé');
 		return res.status(401).json({ message: 'Non authorisé' });
 	}
 
@@ -41,6 +43,7 @@ const checkjwtTokenMiddleware = (req, res, next) => {
 	const secret = fs.readFileSync('./src/.certs/2603.pem');
 	jwt.verify(jwt_token, secret, (err, decodedToken) => {
 		if (err) {
+			logger.error('401 - Bad Token');
 			return res.status(401).json({ message: 'Bad token' });
 		}
 

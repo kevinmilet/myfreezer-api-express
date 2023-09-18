@@ -13,8 +13,8 @@ const loginLimiter = rateLimiter({
 });
 
 const generalLimiter = rateLimiter({
-	max: 5,
-	windowsMS: 5000,
+	max: 10,
+	windowsMS: 1000,
 	message: 'Too many requests',
 });
 
