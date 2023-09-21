@@ -136,6 +136,7 @@ exports.createUser = async (req, res, next) => {
 		logger.info('User created');
 		return res.json({ message: 'User created', data: newUser });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -188,6 +189,7 @@ exports.updateUser = async (req, res, next) => {
 		logger.info('User updated');
 		return res.json({ message: 'User updated', data: user });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -221,6 +223,7 @@ exports.deleteUser = async (req, res, next) => {
 		logger.info('User deleted');
 		return res.status(204).json({ message: 'User deleted' });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -254,6 +257,7 @@ exports.trashUser = async (req, res, next) => {
 		logger.info('User desactivated');
 		return res.status(204).json({ message: 'User desactivated' });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -287,6 +291,7 @@ exports.untrashUser = async (req, res, next) => {
 		logger.info('User restored');
 		return res.status(204).json({ message: 'User restored' });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -329,6 +334,7 @@ exports.searchUser = async (req, res, next) => {
 
 		return res.json({ data: users });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };

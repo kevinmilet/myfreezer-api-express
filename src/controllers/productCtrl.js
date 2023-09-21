@@ -10,12 +10,14 @@ const {
 	ProductError,
 	ForbiddenError,
 } = require('../errors/customErrors');
+const logger = require('../config/logger');
 
 exports.getAllProducts = async (req, res, next) => {
 	try {
 		let products = await Product.findAll();
 		return res.json({ data: products });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -25,6 +27,7 @@ exports.getProductById = async (req, res, next) => {
 		let productId = parseInt(req.params.id);
 
 		if (!productId) {
+			logger.error('400 - Missing parameter');
 			throw new RequestError('Missing parameter');
 		}
 
@@ -47,15 +50,18 @@ exports.getProductById = async (req, res, next) => {
 		});
 
 		if (product === null) {
+			logger.error('404 - Product not found');
 			throw new ProductError('Product not found', 2);
 		}
 
 		if (product.user_id !== req.user_id && !req.isAdmin) {
+			logger.error('403 - Forbidden');
 			throw new ForbiddenError('Forbidden');
 		}
 
 		return res.json({ data: product });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -66,6 +72,7 @@ exports.getProductsByFreezerId = async (req, res, next) => {
 		let freezerId = parseInt(req.params.id);
 
 		if (!freezerId) {
+			logger.error('400 - Missing parameters');
 			throw new RequestError('Missing parameters');
 		}
 
@@ -92,6 +99,7 @@ exports.getProductsByFreezerId = async (req, res, next) => {
 
 		return res.json({ data: products });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -101,10 +109,12 @@ exports.getProductsByUserId = async (req, res, next) => {
 		let userId = parseInt(req.params.id);
 
 		if (!userId) {
+			logger.error('400 - Missing parameters');
 			throw new RequestError('Missing parameters');
 		}
 
 		if (req.user_id !== userId && !req.isAdmin) {
+			logger.error('403 - Forbidden');
 			throw new ForbiddenError('Forbidden');
 		}
 
@@ -123,6 +133,7 @@ exports.getProductsByUserId = async (req, res, next) => {
 		});
 		return res.json({ data: products });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -146,6 +157,7 @@ exports.searchProduct = async (req, res, next) => {
 		});
 
 		if (products === null) {
+			logger.error('404 - Product not found');
 			throw new ProductError('Product not found', 2);
 		}
 
@@ -172,6 +184,7 @@ exports.createProduct = async (req, res, next) => {
 			!user_id ||
 			!product_type_id | !quantity | !adding_date
 		) {
+			logger.error('400 - Missing parameters');
 			throw new RequestError('Missing data');
 		}
 
@@ -192,8 +205,10 @@ exports.createProduct = async (req, res, next) => {
 		data.adding_date = adding_date;
 
 		let newProduct = await Product.create(data);
+		logger.info('Produit ajouté');
 		return res.json({ message: 'Product created', data: newProduct });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -203,6 +218,7 @@ exports.updateProduct = async (req, res, next) => {
 		let productId = parseInt(req.params.id);
 
 		if (!productId) {
+			logger.error('403 - Missing parameters');
 			throw new RequestError('Missing parameters');
 		}
 
@@ -212,10 +228,12 @@ exports.updateProduct = async (req, res, next) => {
 		});
 
 		if (product === null) {
+			logger.error('404 - Product not found');
 			throw new ProductError('Product not found', 2);
 		}
 
 		if (req.user_id !== product.user_id) {
+			logger.error('403 - Forbidden');
 			throw new ForbiddenError('Forbidden');
 		}
 
@@ -250,8 +268,10 @@ exports.updateProduct = async (req, res, next) => {
 			where: { id: productId },
 		});
 
+		logger.info('Produit mis à jour');
 		return res.json({ message: 'Product updated', data: updatedProduct });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -261,24 +281,33 @@ exports.deleteProduct = async (req, res, next) => {
 		let productId = parseInt(req.params.id);
 
 		if (!productId) {
+			logger.error('400 - Missing parameters');
 			throw new RequestError('Missing parameters');
 		}
 
-		let product = Product.findOne({ where: { id: productId }, raw: true });
+		let product = await Product.findOne({
+			where: { id: productId },
+			raw: true,
+		});
 
 		if (product === null) {
+			logger.error('404 - Product not found');
 			throw new ProductError('Product not found', 2);
 		}
-		console.log(product.freezer_id);
-		console.log(req.user_id, product.user_id);
+
 		if (req.user_id !== product.user_id) {
+			logger.error('403 - Forbidden');
 			throw new ForbiddenError('Forbidden');
 		}
 
 		// Supression du Product
 		await Product.destroy({ where: { id: productId }, force: true });
+
+		logger.info(`Le produit avec l'id "${productId}" a été supprimé`);
+
 		return res.status(204).json({ message: 'Product deleted' });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -288,23 +317,28 @@ exports.trashProduct = async (req, res, next) => {
 		let productId = parseInt(req.params.id);
 
 		if (!productId) {
+			logger.error('400 - Missing parameters');
 			throw new RequestError('Missing parameters');
 		}
 
 		let product = Product.findOne({ where: { id: productId } });
 
 		if (product === null) {
+			logger.error('404 - Product not found');
 			throw new ProductError('Product not found', 2);
 		}
 
 		if (req.user_id !== product.user_id) {
+			logger.error('403 - Forbidden');
 			throw new ForbiddenError('Forbidden');
 		}
 
 		// Soft delete du Product
 		await Product.destroy({ where: { id: productId } });
+		logger.info(`Le produit "${product.name}" à été désactivé`);
 		return res.status(204).json({ message: 'Product soft deleted' });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -314,22 +348,27 @@ exports.restoreProduct = async (req, res, next) => {
 		let productId = parseInt(req.params.id);
 
 		if (!productId) {
+			logger.error('400 - Missing parameters');
 			throw new RequestError('Missing parameters');
 		}
 
 		let product = Product.findOne({ where: { id: productId } });
 
 		if (product === null) {
+			logger.error('404 - Product not found');
 			throw new ProductError('Product not found', 2);
 		}
 
 		if (req.user_id !== product.user_id) {
+			logger.error('403 - Forbidden');
 			throw new ForbiddenError('Forbidden');
 		}
 
 		await Product.restore({ where: { id: productId } });
+		logger.info(`Le produit "${product.name}" à été restauré`);
 		return res.status(204).json({ message: 'Product restored' });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };

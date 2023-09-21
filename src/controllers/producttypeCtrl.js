@@ -1,10 +1,7 @@
 const DB = require('../config/db.config');
 const ProductType = DB.ProductType;
-const {
-	RequestError,
-	ProductTypeError,
-	ForbiddenError,
-} = require('../errors/customErrors');
+const { RequestError, ProductTypeError } = require('../errors/customErrors');
+const logger = require('../config/logger');
 
 /**
  * Récupère tous les produits
@@ -17,6 +14,7 @@ exports.getAllProductTypes = async (req, res, next) => {
 		let productType = await ProductType.findAll();
 		return res.json({ data: productType });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -33,6 +31,7 @@ exports.getProductTypeById = async (req, res, next) => {
 		let id = parseInt(req.params.id);
 
 		if (!id) {
+			logger.error('400 - Missing parameter');
 			throw new RequestError('Missing parameter');
 		}
 
@@ -42,11 +41,13 @@ exports.getProductTypeById = async (req, res, next) => {
 		});
 
 		if (productType === null) {
+			logger.error('404 - Product type not found');
 			throw new ProductTypeError('Product type not found', 4);
 		}
 
 		return res.json({ data: productType });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -61,6 +62,7 @@ exports.getProductTypeById = async (req, res, next) => {
 exports.createProductType = async (req, res, next) => {
 	try {
 		if (!req.body.name) {
+			logger.error('400 - Missing parameters');
 			throw new RequestError('Missing data');
 		}
 
@@ -73,6 +75,7 @@ exports.createProductType = async (req, res, next) => {
 			productType !== null &&
 			productType.name.toLowerCase() == req.body.name.trim().toLowerCase()
 		) {
+			logger.error(`409 - The product type '${req.body.name}' already exists`);
 			throw new ProductTypeError(
 				`The product type '${req.body.name}' already exists`,
 				null
@@ -83,9 +86,10 @@ exports.createProductType = async (req, res, next) => {
 		req.body.name = req.body.name.trim().toLowerCase();
 
 		let newPT = await ProductType.create(req.body);
-
+		logger.info('Type de produit créé');
 		return res.json({ message: 'Product Type created', data: newPT });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -102,6 +106,7 @@ exports.updateProductType = async (req, res, next) => {
 		let id = parseInt(req.params.id);
 
 		if (!id) {
+			logger.error('400 - Missing parameters');
 			throw new RequestError('Missing parameter');
 		}
 
@@ -111,10 +116,12 @@ exports.updateProductType = async (req, res, next) => {
 		});
 
 		if (productType === null) {
+			logger.error('404 - Product tpe not found');
 			throw new ProductTypeError('Product type not found', 3);
 		} else if (
 			productType.name.toLowerCase() == req.body.name.trim().toLowerCase()
 		) {
+			logger.error(`409 - The product type '${req.body.name}' already exists`);
 			throw new ProductTypeError(
 				`The product type '${req.body.name}' already exists`,
 				null
@@ -125,9 +132,10 @@ exports.updateProductType = async (req, res, next) => {
 		req.body.name = req.body.name.trim().toLowerCase();
 
 		let updatedPT = await ProductType.update(req.body, { where: { id: id } });
-
+		logger.info('Type de produit mis à jour');
 		return res.json({ message: 'Product type updated', data: updatedPT });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -144,6 +152,7 @@ exports.deleteProductType = async (req, res, next) => {
 		let id = parseInt(req.params.id);
 
 		if (!id) {
+			logger.error('400 - Missing parameters');
 			throw new RequestError('Missing parameter');
 		}
 
@@ -152,14 +161,16 @@ exports.deleteProductType = async (req, res, next) => {
 		});
 
 		if (productType === null) {
+			logger.error('404 - Product type not found');
 			throw new ProductTypeError('Product type not found', 3);
 		}
 
 		// Supression du Product type
 		await ProductType.destroy({ where: { id: id }, force: true });
-
+		logger.info(`Le type de produit "${productType.name}" à été supprimé`);
 		return res.status(204).json({ message: 'Product type deleted' });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -169,6 +180,7 @@ exports.trashProductType = async (req, res, next) => {
 		let id = parseInt(req.params.id);
 
 		if (!id) {
+			logger.error('400 - Missing parameters');
 			throw new RequestError('Missing parameter');
 		}
 
@@ -177,13 +189,16 @@ exports.trashProductType = async (req, res, next) => {
 		});
 
 		if (productType === null) {
+			logger.error('404 - Product type not found');
 			throw new ProductTypeError('Product type not found', 3);
 		}
 
 		// Soft delete
 		await ProductType.destroy({ where: { id: id } });
+		logger.info(`Le type de produit "${productType.name}" à été désactivé`);
 		return res.status(204).json({ message: 'Product type soft deleted' });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
@@ -193,6 +208,7 @@ exports.restoreProductType = async (req, res) => {
 		let id = parseInt(req.params.id);
 
 		if (!id) {
+			logger.error('400 - Missing parameters');
 			throw new RequestError('Missing parameter');
 		}
 
@@ -201,12 +217,15 @@ exports.restoreProductType = async (req, res) => {
 		});
 
 		if (productType === null) {
+			logger.error('404 - Freezer type not found');
 			throw new ProductTypeError('Product type not found', 3);
 		}
 
 		await ProductType.restore({ where: { id: id } });
+		logger.info(`Le type de produit "${productType.name}" à été réactivé`);
 		return res.status(204).json({ message: 'Product type restored' });
 	} catch (error) {
+		logger.error(error);
 		next(error);
 	}
 };
