@@ -66,7 +66,6 @@ exports.getProductById = async (req, res, next) => {
 	}
 };
 
-// TODO: verifier que l'user connecté à le droit d'afficher les produits de ce congel ou que l'user est admin
 exports.getProductsByFreezerId = async (req, res, next) => {
 	try {
 		let freezerId = parseInt(req.params.id);
@@ -76,26 +75,46 @@ exports.getProductsByFreezerId = async (req, res, next) => {
 			throw new RequestError('Missing parameters');
 		}
 
-		const products = await Product.findAll({
-			where: {
-				freezer_id: freezerId,
-				[Op.and]: [
+		let products = null;
+
+		if (!req.isAdmin) {
+			products = await Product.findAll({
+				where: {
+					freezer_id: freezerId,
+					[Op.and]: [
+						{
+							user_id: req.user_id,
+						},
+					],
+				},
+				include: [
 					{
-						user_id: req.user_id,
+						model: ProductType,
+						attributes: ['id', 'name'],
+					},
+					{
+						model: Freezer,
+						attributes: ['id', 'name', 'user_id'],
 					},
 				],
-			},
-			include: [
-				{
-					model: ProductType,
-					attributes: ['id', 'name'],
+			});
+		} else {
+			products = await Product.findAll({
+				where: {
+					freezer_id: freezerId,
 				},
-				{
-					model: Freezer,
-					attributes: ['id', 'name', 'user_id'],
-				},
-			],
-		});
+				include: [
+					{
+						model: ProductType,
+						attributes: ['id', 'name'],
+					},
+					{
+						model: Freezer,
+						attributes: ['id', 'name', 'user_id'],
+					},
+				],
+			});
+		}
 
 		return res.json({ data: products });
 	} catch (error) {
@@ -140,21 +159,38 @@ exports.getProductsByUserId = async (req, res, next) => {
 
 exports.searchProduct = async (req, res, next) => {
 	try {
-		// TODO: verifier que les produits retournés appartiennent à cet user ou que l'user est admin
 		let search = req.body.search.trim().toLowerCase();
 
 		if (!search) {
 			return res.status(204);
 		}
 
-		const products = await Product.findAll({
-			where: {
-				name: {
-					[Op.like]: `%${search}%`,
+		let products = null;
+
+		if (!res.isAdmin) {
+			products = await Product.findAll({
+				where: {
+					name: {
+						[Op.like]: `%${search}%`,
+					},
+					[Op.and]: [
+						{
+							user_id: req.user_id,
+						},
+					],
 				},
-			},
-			raw: true,
-		});
+				raw: true,
+			});
+		} else {
+			products = await Product.findAll({
+				where: {
+					name: {
+						[Op.like]: `%${search}%`,
+					},
+				},
+				raw: true,
+			});
+		}
 
 		if (products === null) {
 			logger.error('404 - Product not found');
