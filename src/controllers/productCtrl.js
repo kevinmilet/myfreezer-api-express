@@ -167,7 +167,7 @@ exports.searchProduct = async (req, res, next) => {
 
 		let products = null;
 
-		if (!res.isAdmin) {
+		if (!req.isAdmin) {
 			products = await Product.findAll({
 				where: {
 					name: {
